@@ -22,8 +22,6 @@ export default function App() {
           onSave={saveEntry}
         />
 
-        <hr className="feed-divider" />
-
         <main id="entries" className="entry-feed">
           {[...entries].reverse().map((entry, i) => (
             <EntryCard

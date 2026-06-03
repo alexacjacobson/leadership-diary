@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import PhotoCard from './PhotoCard'
 import DocumentCard from './DocumentCard'
@@ -24,12 +24,30 @@ function toBase64(file) {
 export default function EntryCard({ entry, index, onDelete, onUpdate }) {
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [editReflection, setEditReflection] = useState(entry.reflection)
+  const actionsRef = useRef(null)
+
+  useEffect(() => {
+    if (!showActions) return
+    const handleOutside = (e) => {
+      if (actionsRef.current && !actionsRef.current.contains(e.target)) {
+        setShowActions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [showActions])
+  const [editReflection, setEditReflection] = useState(entry.reflection || '')
+  const [editBiggestChallenges, setEditBiggestChallenges] = useState(entry.biggestChallenges || '')
+  const [editKeyLearnings, setEditKeyLearnings] = useState(entry.keyLearnings || '')
+  const [editNewGoals, setEditNewGoals] = useState(entry.newGoals || '')
   const [editPhotos, setEditPhotos] = useState(entry.photos || [])
   const replaceRefs = useRef({})
 
   const handleStartEdit = () => {
-    setEditReflection(entry.reflection)
+    setEditReflection(entry.reflection || '')
+    setEditBiggestChallenges(entry.biggestChallenges || '')
+    setEditKeyLearnings(entry.keyLearnings || '')
+    setEditNewGoals(entry.newGoals || '')
     setEditPhotos(entry.photos ? [...entry.photos] : [])
     setIsEditing(true)
   }
@@ -37,6 +55,9 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
   const handleSave = () => {
     onUpdate(entry.id, {
       reflection: editReflection.trim(),
+      biggestChallenges: editBiggestChallenges.trim(),
+      keyLearnings: editKeyLearnings.trim(),
+      newGoals: editNewGoals.trim(),
       photos: editPhotos,
     })
     setIsEditing(false)
@@ -44,7 +65,10 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
   }
 
   const handleCancelEdit = () => {
-    setEditReflection(entry.reflection)
+    setEditReflection(entry.reflection || '')
+    setEditBiggestChallenges(entry.biggestChallenges || '')
+    setEditKeyLearnings(entry.keyLearnings || '')
+    setEditNewGoals(entry.newGoals || '')
     setEditPhotos(entry.photos ? [...entry.photos] : [])
     setIsEditing(false)
     setShowActions(false)
@@ -67,6 +91,18 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
     onUpdate(entry.id, { photos: updatedPhotos })
   }
 
+  const handlePhotoUpdate = (photoId, patch) => {
+    const updatedPhotos = (entry.photos || []).map(p =>
+      p.id === photoId ? { ...p, ...patch } : p
+    )
+    onUpdate(entry.id, { photos: updatedPhotos })
+  }
+
+  const handlePhotoDelete = (photoId) => {
+    const updatedPhotos = (entry.photos || []).filter(p => p.id !== photoId)
+    onUpdate(entry.id, { photos: updatedPhotos })
+  }
+
   const handleDocPositionChange = (docId, x, y) => {
     const updatedDocs = (entry.documents || []).map(d =>
       d.id === docId ? { ...d, x, y } : d
@@ -74,26 +110,31 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
     onUpdate(entry.id, { documents: updatedDocs })
   }
 
-  const handleDocNameChange = (docId, name) => {
+  const handleDocUpdate = (docId, patch) => {
     const updatedDocs = (entry.documents || []).map(d =>
-      d.id === docId ? { ...d, name } : d
+      d.id === docId ? { ...d, ...patch } : d
     )
     onUpdate(entry.id, { documents: updatedDocs })
   }
+
+  const handleDocDelete = (docId) => {
+    const updatedDocs = (entry.documents || []).filter(d => d.id !== docId)
+    onUpdate(entry.id, { documents: updatedDocs })
+  }
+
+  const hasContent = entry.reflection || entry.biggestChallenges || entry.keyLearnings || entry.newGoals
 
   return (
     <article
       className="entry-card"
       style={{ animationDelay: `${index * 80}ms` }}
     >
+      {/* Week/date + entry controls */}
       <div className="entry-meta">
-        {entry.module && (
-          <span className="entry-module-label">{entry.module}</span>
-        )}
         <span className="entry-week-label">
           {entry.weekLabel} — {formatDate(entry.createdAt)}
         </span>
-        <div className="entry-controls">
+        <div className="entry-controls" ref={actionsRef}>
           {!showActions && !isEditing ? (
             <button
               className="entry-more-btn"
@@ -105,18 +146,10 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
           ) : (
             !isEditing && (
               <div className="entry-action-btns">
-                <button
-                  className="entry-action-btn"
-                  onClick={handleStartEdit}
-                  aria-label="Edit entry"
-                >
+                <button className="entry-action-btn" onClick={handleStartEdit} aria-label="Edit entry">
                   <Pencil size={15} />
                 </button>
-                <button
-                  className="entry-action-btn"
-                  onClick={() => onDelete(entry.id)}
-                  aria-label="Delete entry"
-                >
+                <button className="entry-action-btn" onClick={() => onDelete(entry.id)} aria-label="Delete entry">
                   <Trash2 size={15} />
                 </button>
               </div>
@@ -124,6 +157,11 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
           )}
         </div>
       </div>
+
+      {/* Module label — floats just above the white box */}
+      {entry.module && (
+        <span className="entry-module-label">{entry.module}</span>
+      )}
 
       {isEditing ? (
         <>
@@ -134,7 +172,38 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
               onChange={e => setEditReflection(e.target.value)}
               rows={4}
               autoFocus
+              placeholder="Weekly reflection..."
               aria-label="Edit reflection"
+            />
+            <hr className="entry-section-divider" />
+            <p className="form-section-label">Biggest Challenges</p>
+            <textarea
+              className="entry-edit-textarea"
+              style={{ minHeight: '60px' }}
+              value={editBiggestChallenges}
+              onChange={e => setEditBiggestChallenges(e.target.value)}
+              rows={2}
+              aria-label="Edit biggest challenges"
+            />
+            <hr className="entry-section-divider" />
+            <p className="form-section-label">Key Learnings</p>
+            <textarea
+              className="entry-edit-textarea"
+              style={{ minHeight: '60px' }}
+              value={editKeyLearnings}
+              onChange={e => setEditKeyLearnings(e.target.value)}
+              rows={2}
+              aria-label="Edit key learnings"
+            />
+            <hr className="entry-section-divider" />
+            <p className="form-section-label">New Goals</p>
+            <textarea
+              className="entry-edit-textarea"
+              style={{ minHeight: '60px' }}
+              value={editNewGoals}
+              onChange={e => setEditNewGoals(e.target.value)}
+              rows={2}
+              aria-label="Edit new goals"
             />
           </div>
 
@@ -171,48 +240,70 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
           )}
 
           <div className="entry-edit-actions">
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={handleCancelEdit}
-            >
+            <button type="button" className="btn btn-secondary btn-sm" onClick={handleCancelEdit}>
               Cancel
             </button>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={handleSave}
-            >
+            <button type="button" className="btn btn-primary btn-sm" onClick={handleSave}>
               Save changes
             </button>
           </div>
         </>
       ) : (
         <>
-          {entry.reflection && (
+          {hasContent && (
             <div className="entry-reflection-bg">
-              <p className="entry-reflection">{entry.reflection}</p>
+              {entry.reflection && (
+                <p className="entry-reflection">{entry.reflection}</p>
+              )}
+              {entry.biggestChallenges && (
+                <>
+                  <hr className="entry-section-divider" />
+                  <p className="form-section-label">Biggest Challenges</p>
+                  <p className="entry-reflection">{entry.biggestChallenges}</p>
+                </>
+              )}
+              {entry.keyLearnings && (
+                <>
+                  <hr className="entry-section-divider" />
+                  <p className="form-section-label">Key Learnings</p>
+                  <p className="entry-reflection">{entry.keyLearnings}</p>
+                </>
+              )}
+              {entry.newGoals && (
+                <>
+                  <hr className="entry-section-divider" />
+                  <p className="form-section-label">New Goals</p>
+                  <p className="entry-reflection">{entry.newGoals}</p>
+                </>
+              )}
             </div>
           )}
+
           {(entry.photos || []).length > 0 && (
             <div className="entry-photos">
               {(entry.photos || []).map(photo => (
                 <PhotoCard
                   key={photo.id}
                   photo={photo}
+                  module={entry.module}
                   onPositionChange={handlePhotoPositionChange}
+                  onCardUpdate={handlePhotoUpdate}
+                  onCardDelete={handlePhotoDelete}
                 />
               ))}
             </div>
           )}
+
           {(entry.documents || []).length > 0 && (
             <div className="entry-photos">
               {(entry.documents || []).map(doc => (
                 <DocumentCard
                   key={doc.id}
                   doc={doc}
-                  onNameChange={name => handleDocNameChange(doc.id, name)}
+                  module={entry.module}
                   onPositionChange={handleDocPositionChange}
+                  onCardUpdate={handleDocUpdate}
+                  onCardDelete={handleDocDelete}
                 />
               ))}
             </div>

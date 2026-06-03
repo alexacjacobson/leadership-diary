@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { X } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 import PhotoCard from './PhotoCard'
 import DocumentCard from './DocumentCard'
+import moduleButtonSvg from '../assets/Model-button.svg'
 
 const MODULES = [
   'Module 1 — Introduction',
@@ -43,13 +44,35 @@ function fileExtension(filename) {
 
 export default function NewEntryForm({ entryCount, onSave }) {
   const [module, setModule] = useState(MODULES[0])
+  const [showModuleDropdown, setShowModuleDropdown] = useState(false)
+  const moduleDropdownRef = useRef(null)
   const [reflection, setReflection] = useState('')
+  const [biggestChallenges, setBiggestChallenges] = useState('')
+  const [keyLearnings, setKeyLearnings] = useState('')
+  const [newGoals, setNewGoals] = useState('')
   const [photos, setPhotos] = useState([])
   const [documents, setDocuments] = useState([])
   const photoFileRef = useRef(null)
   const docFileRef = useRef(null)
 
-  const canPost = reflection.trim().length > 0 || photos.length > 0 || documents.length > 0
+  useEffect(() => {
+    if (!showModuleDropdown) return
+    const handleOutside = (e) => {
+      if (moduleDropdownRef.current && !moduleDropdownRef.current.contains(e.target)) {
+        setShowModuleDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [showModuleDropdown])
+
+  const canPost =
+    reflection.trim().length > 0 ||
+    biggestChallenges.trim().length > 0 ||
+    keyLearnings.trim().length > 0 ||
+    newGoals.trim().length > 0 ||
+    photos.length > 0 ||
+    documents.length > 0
 
   const handlePhotoFiles = async (e) => {
     const files = Array.from(e.target.files)
@@ -107,11 +130,17 @@ export default function NewEntryForm({ entryCount, onSave }) {
       weekLabel: weekLabel(entryCount),
       module,
       reflection: reflection.trim(),
+      biggestChallenges: biggestChallenges.trim(),
+      keyLearnings: keyLearnings.trim(),
+      newGoals: newGoals.trim(),
       photos,
       documents,
     })
     setModule(MODULES[0])
     setReflection('')
+    setBiggestChallenges('')
+    setKeyLearnings('')
+    setNewGoals('')
     setPhotos([])
     setDocuments([])
   }
@@ -122,28 +151,83 @@ export default function NewEntryForm({ entryCount, onSave }) {
 
   return (
     <section className="form-section">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       <h1 className="form-title">My Leadership Diary</h1>
 
       <div className="form-white-box">
-        <select
-          className="module-select"
-          value={module}
-          onChange={e => setModule(e.target.value)}
-          aria-label="Select module"
-        >
-          {MODULES.map(m => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-        </select>
+        <div className="module-pill-wrapper" ref={moduleDropdownRef}>
+          <button
+            type="button"
+            className="module-pill-btn"
+            onClick={() => setShowModuleDropdown(v => !v)}
+            aria-label="Select module"
+          >
+            <img src={moduleButtonSvg} alt="" className="module-pill-bg" />
+            <span className="module-pill-label">{module}</span>
+          </button>
+          {showModuleDropdown && (
+            <div className="module-pill-dropdown">
+              <img src={moduleDropdownSvg} alt="" className="module-pill-dropdown-bg" />
+              <div className="module-pill-items">
+                {MODULES.map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`module-pill-item${m === module ? ' module-pill-item--active' : ''}`}
+                    onClick={() => { setModule(m); setShowModuleDropdown(false) }}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         <textarea
           className="reflection-textarea"
-          placeholder="What shaped you this week?"
+          placeholder="What have you learned this week?"
           value={reflection}
           onChange={e => setReflection(e.target.value)}
           onKeyDown={handleKeyDown}
           aria-label="Weekly reflection"
         />
+
+        <hr className="form-section-divider" />
+        <div className="form-section-group">
+          <p className="form-section-label">Biggest Challenges</p>
+          <textarea
+            className="reflection-textarea reflection-textarea--sm"
+            value={biggestChallenges}
+            onChange={e => setBiggestChallenges(e.target.value)}
+            onKeyDown={handleKeyDown}
+            aria-label="Biggest challenges"
+          />
+        </div>
+
+        <hr className="form-section-divider" />
+        <div className="form-section-group">
+          <p className="form-section-label">Key Learnings</p>
+          <textarea
+            className="reflection-textarea reflection-textarea--sm"
+            value={keyLearnings}
+            onChange={e => setKeyLearnings(e.target.value)}
+            onKeyDown={handleKeyDown}
+            aria-label="Key learnings"
+          />
+        </div>
+
+        <hr className="form-section-divider" />
+        <div className="form-section-group">
+          <p className="form-section-label">New Goals</p>
+          <textarea
+            className="reflection-textarea reflection-textarea--sm"
+            value={newGoals}
+            onChange={e => setNewGoals(e.target.value)}
+            onKeyDown={handleKeyDown}
+            aria-label="New goals"
+          />
+        </div>
 
         {photos.length > 0 && (
           <div className="form-photos-row">
@@ -153,7 +237,6 @@ export default function NewEntryForm({ entryCount, onSave }) {
                   <PhotoCard
                     photo={photo}
                     onCaptionChange={caption => updatePhoto(photo.id, { caption })}
-                    onPositionChange={(id, x, y) => updatePhoto(id, { x, y })}
                   />
                   <button
                     type="button"
@@ -181,7 +264,6 @@ export default function NewEntryForm({ entryCount, onSave }) {
                   <DocumentCard
                     doc={doc}
                     onNameChange={name => updateDoc(doc.id, { name })}
-                    onPositionChange={(id, x, y) => updateDoc(id, { x, y })}
                   />
                   <button
                     type="button"
@@ -200,6 +282,7 @@ export default function NewEntryForm({ entryCount, onSave }) {
             ))}
           </div>
         )}
+      </div>
       </div>
 
       <div className="form-actions">
