@@ -884,6 +884,10 @@ textarea, input {
   height: 82px;
 }
 
+.photo-card--editing .photo-card__caption-area {
+  height: auto;
+}
+
 .photo-card__module-line {
   font-family: var(--font-mono);
   font-size: 9px;

@@ -133,7 +133,7 @@ export default function PhotoCard({
     <>
       <div
         ref={cardRef}
-        className={`photo-card photo-card--${photo.orientation}${onPositionChange ? ' photo-card--draggable' : ''}${isDragging ? ' photo-card--dragging' : ''}`}
+        className={`photo-card photo-card--${photo.orientation}${onPositionChange ? ' photo-card--draggable' : ''}${isDragging ? ' photo-card--dragging' : ''}${isCardEditing ? ' photo-card--editing' : ''}`}
         style={cardStyle}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -172,16 +172,19 @@ export default function PhotoCard({
           <div className="photo-card__caption-area">
             {module && <span className="photo-card__module-line">{module}</span>}
             {isCardEditing ? (
-              <textarea
-                className="photo-card__caption-inline-edit"
-                value={editCaption}
-                onChange={e => setEditCaption(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSaveCardEdit() } }}
-                placeholder="add a caption..."
-                aria-label="Edit caption"
-                autoFocus
-                onClick={e => e.stopPropagation()}
-              />
+              <>
+                <ColorPicker value={editColor} onChange={setEditColor} />
+                <textarea
+                  className="photo-card__caption-inline-edit"
+                  value={editCaption}
+                  onChange={e => setEditCaption(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSaveCardEdit() } }}
+                  placeholder="add a caption..."
+                  aria-label="Edit caption"
+                  autoFocus
+                  onClick={e => e.stopPropagation()}
+                />
+              </>
             ) : (
               photo.caption && <span className="photo-card__caption-line">{photo.caption}</span>
             )}
