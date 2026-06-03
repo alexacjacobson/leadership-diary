@@ -10,13 +10,6 @@ export default function App() {
     <>
       <NavHeader />
       <div className="app">
-        <header className="app-header">
-          <span className="section-label">
-            <span style={{ color: 'var(--color-primary)' }}>01</span>
-            {' — Leadership Diary'}
-          </span>
-        </header>
-
         <NewEntryForm
           entryCount={entries.length}
           onSave={saveEntry}

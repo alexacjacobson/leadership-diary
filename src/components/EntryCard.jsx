@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2, X } from 'lucide-react'
 import PhotoCard from './PhotoCard'
 import DocumentCard from './DocumentCard'
 import ColorPicker from './ColorPicker'
@@ -19,6 +19,21 @@ function toBase64(file) {
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2)
+}
+
+function fileExtension(filename) {
+  return filename.split('.').pop().toLowerCase()
+}
+
+function assignOrientations(photos) {
+  return photos.map((p, i) => ({
+    ...p,
+    orientation: i === 0 ? 'horizontal' : 'vertical',
+  }))
 }
 
 export default function EntryCard({ entry, index, onDelete, onUpdate }) {
@@ -41,7 +56,11 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
   const [editKeyLearnings, setEditKeyLearnings] = useState(entry.keyLearnings || '')
   const [editNewGoals, setEditNewGoals] = useState(entry.newGoals || '')
   const [editPhotos, setEditPhotos] = useState(entry.photos || [])
+  const [newEditPhotos, setNewEditPhotos] = useState([])
+  const [editDocuments, setEditDocuments] = useState(entry.documents || [])
   const replaceRefs = useRef({})
+  const photoAddRef = useRef(null)
+  const docAddRef = useRef(null)
 
   useEffect(() => {
     if (!isEditing) return
@@ -58,6 +77,8 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
     setEditKeyLearnings(entry.keyLearnings || '')
     setEditNewGoals(entry.newGoals || '')
     setEditPhotos(entry.photos ? [...entry.photos] : [])
+    setNewEditPhotos([])
+    setEditDocuments(entry.documents ? [...entry.documents] : [])
     setIsEditing(true)
   }
 
@@ -67,7 +88,8 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
       biggestChallenges: editBiggestChallenges.trim(),
       keyLearnings: editKeyLearnings.trim(),
       newGoals: editNewGoals.trim(),
-      photos: editPhotos,
+      photos: [...editPhotos, ...newEditPhotos],
+      documents: editDocuments,
     })
     setIsEditing(false)
     setShowActions(false)
@@ -79,6 +101,8 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
     setEditKeyLearnings(entry.keyLearnings || '')
     setEditNewGoals(entry.newGoals || '')
     setEditPhotos(entry.photos ? [...entry.photos] : [])
+    setNewEditPhotos([])
+    setEditDocuments(entry.documents ? [...entry.documents] : [])
     setIsEditing(false)
     setShowActions(false)
   }
@@ -91,6 +115,50 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
     if (!file) return
     const src = await toBase64(file)
     updateEditPhoto(photoId, { src })
+  }
+
+  const handleAddPhoto = async (e) => {
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+    const incoming = await Promise.all(
+      files.map(async (file) => ({
+        id: uid(),
+        src: await toBase64(file),
+        caption: '',
+        cardColor: '#FFB8E7',
+        orientation: 'vertical',
+      }))
+    )
+    setNewEditPhotos(prev => assignOrientations([...prev, ...incoming]))
+    e.target.value = ''
+  }
+
+  const handleAddDoc = async (e) => {
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+    const incoming = await Promise.all(
+      files.map(async (file) => ({
+        id: uid(),
+        src: await toBase64(file),
+        name: file.name.replace(/\.[^.]+$/, ''),
+        fileType: fileExtension(file.name),
+        cardColor: '#3B5BDB',
+      }))
+    )
+    setEditDocuments(prev => [...prev, ...incoming])
+    e.target.value = ''
+  }
+
+  const removeNewEditPhoto = (id) => {
+    setNewEditPhotos(prev => assignOrientations(prev.filter(p => p.id !== id)))
+  }
+
+  const updateEditDoc = (id, patch) => {
+    setEditDocuments(prev => prev.map(d => (d.id === id ? { ...d, ...patch } : d)))
+  }
+
+  const removeEditDoc = (id) => {
+    setEditDocuments(prev => prev.filter(d => d.id !== id))
   }
 
   const handlePhotoPositionChange = (photoId, x, y) => {
@@ -214,6 +282,41 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
             />
           </div>
 
+          <div style={{ display: 'flex', gap: '24px', marginTop: '12px' }}>
+            <button
+              type="button"
+              className="form-text-action"
+              onClick={() => photoAddRef.current?.click()}
+            >
+              add photo
+            </button>
+            <input
+              ref={photoAddRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="visually-hidden"
+              onChange={handleAddPhoto}
+              aria-label="Add photos"
+            />
+            <button
+              type="button"
+              className="form-text-action"
+              onClick={() => docAddRef.current?.click()}
+            >
+              add document
+            </button>
+            <input
+              ref={docAddRef}
+              type="file"
+              accept=".pdf,.doc,.docx,.ppt,.pptx"
+              multiple
+              className="visually-hidden"
+              onChange={handleAddDoc}
+              aria-label="Add documents"
+            />
+          </div>
+
           {editPhotos.length > 0 && (
             <div className="edit-photo-section">
               {editPhotos.map(photo => (
@@ -240,6 +343,60 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
                   <ColorPicker
                     value={photo.cardColor}
                     onChange={color => updateEditPhoto(photo.id, { cardColor: color })}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {newEditPhotos.length > 0 && (
+            <div className="form-photos-row" style={{ marginTop: '16px' }}>
+              {newEditPhotos.map(photo => (
+                <div key={photo.id} className="photo-edit-item">
+                  <div className="photo-edit-preview">
+                    <PhotoCard
+                      photo={photo}
+                      onCaptionChange={caption => setNewEditPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, caption } : p))}
+                    />
+                    <button
+                      type="button"
+                      className="photo-remove-btn"
+                      onClick={() => removeNewEditPhoto(photo.id)}
+                      aria-label="Remove photo"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <ColorPicker
+                    value={photo.cardColor}
+                    onChange={color => setNewEditPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, cardColor: color } : p))}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {editDocuments.length > 0 && (
+            <div className="form-photos-row" style={{ marginTop: '16px' }}>
+              {editDocuments.map(doc => (
+                <div key={doc.id} className="photo-edit-item">
+                  <div className="photo-edit-preview">
+                    <DocumentCard
+                      doc={doc}
+                      onNameChange={name => updateEditDoc(doc.id, { name })}
+                    />
+                    <button
+                      type="button"
+                      className="photo-remove-btn"
+                      onClick={() => removeEditDoc(doc.id)}
+                      aria-label="Remove document"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <ColorPicker
+                    value={doc.cardColor}
+                    onChange={color => updateEditDoc(doc.id, { cardColor: color })}
                   />
                 </div>
               ))}

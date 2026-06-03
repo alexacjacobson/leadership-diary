@@ -265,30 +265,29 @@ textarea, input {
   z-index: 100;
   width: 330px;
   background: #FAF8F2;
-  border-radius: 8px;
-  border: 1px solid rgba(212, 95, 168, 0.25);
+  border-radius: 2px;
+  border: 2px solid #D45FA8;
+  box-shadow: none;
   overflow: hidden;
 }
 
 .module-pill-items {
   display: flex;
   flex-direction: column;
-  padding: 5px 0;
+  padding: 0;
 }
 
 .module-pill-item {
   display: flex;
   align-items: center;
-  height: 40px;
-  background: none;
+  background: transparent;
   border: none;
-  padding: 0 20px;
-  font-family: var(--font-body);
+  padding: 12px 16px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 13px;
-  color: var(--color-primary);
+  color: #D45FA8;
   cursor: pointer;
-  transition: background-color 0.15s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -296,11 +295,11 @@ textarea, input {
 }
 
 .module-pill-item:hover {
-  background: rgba(212, 95, 168, 0.08);
+  background: transparent;
 }
 
 .module-pill-item--active {
-  background: rgba(212, 95, 168, 0.05);
+  background: transparent;
 }
 
 /* Expandable white writing box */
