@@ -36,7 +36,7 @@ function assignOrientations(photos) {
   }))
 }
 
-export default function EntryCard({ entry, index, onDelete, onUpdate }) {
+export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate }) {
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const actionsRef = useRef(null)
@@ -212,7 +212,7 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
           {entry.weekLabel} — {formatDate(entry.createdAt)}
         </span>
         <div className="entry-controls" ref={actionsRef}>
-          {!showActions && !isEditing ? (
+          {isUnlocked && (!showActions && !isEditing ? (
             <button
               className="entry-more-btn"
               onClick={() => setShowActions(true)}
@@ -231,7 +231,7 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
                 </button>
               </div>
             )
-          )}
+          ))}
         </div>
       </div>
 

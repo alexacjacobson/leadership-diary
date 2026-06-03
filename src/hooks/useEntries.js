@@ -1,42 +1,51 @@
-import { useState } from 'react'
+const IS_DEV = window.location.hostname === 'localhost';
+const API = '/api/entries';
 
-const STORAGE_KEY = 'leadership_diary_entries'
-
-function loadEntries() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
+export async function getEntries() {
+  if (IS_DEV) {
+    return JSON.parse(localStorage.getItem('leadership_diary_entries') || '[]');
   }
+  const res = await fetch(API);
+  return res.json();
 }
 
-export default function useEntries() {
-  const [entries, setEntries] = useState(loadEntries)
-
-  const saveEntry = (entry) => {
-    setEntries(prev => {
-      const next = [...prev, entry]
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-      return next
-    })
+export async function saveEntry(entry) {
+  if (IS_DEV) {
+    const entries = JSON.parse(localStorage.getItem('leadership_diary_entries') || '[]');
+    entries.push(entry);
+    localStorage.setItem('leadership_diary_entries', JSON.stringify(entries));
+    return entry;
   }
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry)
+  });
+  return res.json();
+}
 
-  const deleteEntry = (id) => {
-    setEntries(prev => {
-      const next = prev.filter(e => e.id !== id)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-      return next
-    })
+export async function updateEntry(entry) {
+  if (IS_DEV) {
+    const entries = JSON.parse(localStorage.getItem('leadership_diary_entries') || '[]');
+    const index = entries.findIndex(e => e.id === entry.id);
+    if (index !== -1) entries[index] = entry;
+    localStorage.setItem('leadership_diary_entries', JSON.stringify(entries));
+    return entry;
   }
+  const res = await fetch(`${API}/${entry.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry)
+  });
+  return res.json();
+}
 
-  const updateEntry = (id, patch) => {
-    setEntries(prev => {
-      const next = prev.map(e => (e.id === id ? { ...e, ...patch } : e))
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-      return next
-    })
+export async function deleteEntry(id) {
+  if (IS_DEV) {
+    const entries = JSON.parse(localStorage.getItem('leadership_diary_entries') || '[]');
+    const filtered = entries.filter(e => e.id !== id);
+    localStorage.setItem('leadership_diary_entries', JSON.stringify(filtered));
+    return;
   }
-
-  return { entries, saveEntry, deleteEntry, updateEntry }
+  await fetch(`${API}/${id}`, { method: 'DELETE' });
 }

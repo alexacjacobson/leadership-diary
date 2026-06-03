@@ -119,6 +119,67 @@ textarea, input {
   color: var(--color-ink);
 }
 
+.nav-lock-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: opacity 0.15s ease;
+  line-height: 1;
+}
+
+.nav-lock-btn:hover {
+  opacity: 0.7;
+}
+
+/* =====================================================
+   PIN MODAL
+   ===================================================== */
+.pin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-modal {
+  background: #FFFFFF;
+  border: 2px solid #D45FA8;
+  border-radius: 4px;
+  padding: 40px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-input {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.2em;
+  border: none;
+  border-bottom: 1px solid rgba(136, 136, 136, 0.4);
+  outline: none;
+  width: 120px;
+  text-align: center;
+  background: transparent;
+  color: var(--color-ink);
+  padding: 8px 0;
+}
+
+.pin-input::placeholder {
+  color: var(--color-muted);
+  font-style: italic;
+  letter-spacing: 0;
+  font-size: 14px;
+}
+
 /* =====================================================
    BUTTONS
    ===================================================== */

@@ -1,5 +1,10 @@
 name = "leadership-diary"
 compatibility_date = "2024-01-01"
+main = "worker.js"
+
+[[kv_namespaces]]
+binding = "DIARY_KV"
+id = "1cd07702e3e244038b56b8edafcc2663"
 
 [assets]
 directory = "./dist"
