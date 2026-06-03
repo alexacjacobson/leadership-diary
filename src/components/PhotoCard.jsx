@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2, Check } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 
 export default function PhotoCard({
@@ -13,15 +13,10 @@ export default function PhotoCard({
   const cardRef = useRef(null)
   const actionsRef = useRef(null)
   const dragOffset = useRef({ x: 0, y: 0 })
+  const posRef = useRef(null)
 
   const [isDragging, setIsDragging] = useState(false)
-  const [pos, setPos] = useState(() => {
-    const raw = localStorage.getItem(`card-pos-${photo.id}`)
-    if (raw) return JSON.parse(raw)
-    if (photo.x !== undefined && photo.y !== undefined) return { x: photo.x, y: photo.y }
-    return null
-  })
-
+  const [posInitialized, setPosInitialized] = useState(false)
   const [showCardActions, setShowCardActions] = useState(false)
   const [isCardEditing, setIsCardEditing] = useState(false)
   const [editCaption, setEditCaption] = useState('')
@@ -42,11 +37,17 @@ export default function PhotoCard({
   }, [showCardActions])
 
   useEffect(() => {
-    if (!onPositionChange || pos !== null) return
-    if (cardRef.current) {
+    if (!onPositionChange) return
+    const raw = localStorage.getItem(`card-pos-${photo.id}`)
+    if (raw) {
+      posRef.current = JSON.parse(raw)
+    } else if (photo.x !== undefined && photo.y !== undefined) {
+      posRef.current = { x: photo.x, y: photo.y }
+    } else if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect()
-      setPos({ x: rect.left, y: rect.top })
+      posRef.current = { x: rect.left, y: rect.top }
     }
+    setPosInitialized(true)
   }, [])
 
   const onPointerDown = (e) => {
@@ -56,30 +57,43 @@ export default function PhotoCard({
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
     dragOffset.current = {
-      x: e.clientX - (pos?.x ?? 0),
-      y: e.clientY - (pos?.y ?? 0),
+      x: e.clientX - (posRef.current?.x ?? 0),
+      y: e.clientY - (posRef.current?.y ?? 0),
     }
     setIsDragging(true)
   }
 
   const onPointerMove = (e) => {
     if (!isDragging) return
-    setPos({
-      x: e.clientX - dragOffset.current.x,
-      y: e.clientY - dragOffset.current.y,
-    })
+    const x = e.clientX - dragOffset.current.x
+    const y = e.clientY - dragOffset.current.y
+    posRef.current = { x, y }
+    if (cardRef.current) {
+      cardRef.current.style.left = x + 'px'
+      cardRef.current.style.top = y + 'px'
+    }
   }
 
   const onPointerUp = (e) => {
-    setIsDragging(false)
+    if (!isDragging) return
     const finalPos = {
       x: e.clientX - dragOffset.current.x,
       y: e.clientY - dragOffset.current.y,
     }
-    setPos(finalPos)
+    posRef.current = finalPos
     localStorage.setItem(`card-pos-${photo.id}`, JSON.stringify(finalPos))
     if (onPositionChange) onPositionChange(photo.id, finalPos.x, finalPos.y)
+    setIsDragging(false)
   }
+
+  useEffect(() => {
+    if (!isCardEditing) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsCardEditing(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isCardEditing])
 
   const handleStartCardEdit = (e) => {
     e.stopPropagation()
@@ -104,10 +118,10 @@ export default function PhotoCard({
 
   const cardStyle = {
     backgroundColor: isCardEditing ? editColor : photo.cardColor,
-    ...(onPositionChange && pos ? {
+    ...(onPositionChange && posInitialized && posRef.current ? {
       position: 'fixed',
-      left: pos.x,
-      top: pos.y,
+      left: posRef.current.x,
+      top: posRef.current.y,
       cursor: isDragging ? 'grabbing' : 'grab',
       userSelect: 'none',
       touchAction: 'none',
@@ -135,6 +149,7 @@ export default function PhotoCard({
               <button
                 type="button"
                 className="card-more-btn"
+                onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
                 onClick={e => { e.stopPropagation(); setShowCardActions(true) }}
                 aria-label="Card options"
               >
@@ -161,6 +176,7 @@ export default function PhotoCard({
                 className="photo-card__caption-inline-edit"
                 value={editCaption}
                 onChange={e => setEditCaption(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSaveCardEdit() } }}
                 placeholder="add a caption..."
                 aria-label="Edit caption"
                 autoFocus
@@ -183,6 +199,18 @@ export default function PhotoCard({
             {module && <span className="photo-card__module-line">{module}</span>}
             {photo.caption && <span className="photo-card__caption-line">{photo.caption}</span>}
           </div>
+        )}
+
+        {isCardEditing && (
+          <button
+            type="button"
+            className="card-edit-confirm-btn"
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
+            onClick={handleSaveCardEdit}
+            aria-label="Save"
+          >
+            <Check size={16} />
+          </button>
         )}
       </div>
 

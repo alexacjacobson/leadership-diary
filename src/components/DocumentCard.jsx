@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2, Check } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 import documentIconSvg from '../assets/document.svg'
 
@@ -14,16 +14,11 @@ export default function DocumentCard({
   const cardRef = useRef(null)
   const actionsRef = useRef(null)
   const dragOffset = useRef({ x: 0, y: 0 })
+  const posRef = useRef(null)
   const hasMoved = useRef(false)
 
   const [isDragging, setIsDragging] = useState(false)
-  const [pos, setPos] = useState(() => {
-    const raw = localStorage.getItem(`card-pos-${doc.id}`)
-    if (raw) return JSON.parse(raw)
-    if (doc.x !== undefined && doc.y !== undefined) return { x: doc.x, y: doc.y }
-    return null
-  })
-
+  const [posInitialized, setPosInitialized] = useState(false)
   const [showPdf, setShowPdf] = useState(false)
   const [showCardActions, setShowCardActions] = useState(false)
   const [isCardEditing, setIsCardEditing] = useState(false)
@@ -45,11 +40,17 @@ export default function DocumentCard({
   }, [showCardActions])
 
   useEffect(() => {
-    if (!onPositionChange || pos !== null) return
-    if (cardRef.current) {
+    if (!onPositionChange) return
+    const raw = localStorage.getItem(`card-pos-${doc.id}`)
+    if (raw) {
+      posRef.current = JSON.parse(raw)
+    } else if (doc.x !== undefined && doc.y !== undefined) {
+      posRef.current = { x: doc.x, y: doc.y }
+    } else if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect()
-      setPos({ x: rect.left, y: rect.top })
+      posRef.current = { x: rect.left, y: rect.top }
     }
+    setPosInitialized(true)
   }, [])
 
   const onPointerDown = (e) => {
@@ -60,8 +61,8 @@ export default function DocumentCard({
     e.currentTarget.setPointerCapture(e.pointerId)
     hasMoved.current = false
     dragOffset.current = {
-      x: e.clientX - (pos?.x ?? 0),
-      y: e.clientY - (pos?.y ?? 0),
+      x: e.clientX - (posRef.current?.x ?? 0),
+      y: e.clientY - (posRef.current?.y ?? 0),
     }
     setIsDragging(true)
   }
@@ -69,23 +70,36 @@ export default function DocumentCard({
   const onPointerMove = (e) => {
     if (!isDragging) return
     hasMoved.current = true
-    setPos({
-      x: e.clientX - dragOffset.current.x,
-      y: e.clientY - dragOffset.current.y,
-    })
+    const x = e.clientX - dragOffset.current.x
+    const y = e.clientY - dragOffset.current.y
+    posRef.current = { x, y }
+    if (cardRef.current) {
+      cardRef.current.style.left = x + 'px'
+      cardRef.current.style.top = y + 'px'
+    }
   }
 
   const onPointerUp = (e) => {
-    setIsDragging(false)
+    if (!isDragging) return
     const finalPos = {
       x: e.clientX - dragOffset.current.x,
       y: e.clientY - dragOffset.current.y,
     }
-    setPos(finalPos)
+    posRef.current = finalPos
     localStorage.setItem(`card-pos-${doc.id}`, JSON.stringify(finalPos))
     if (!hasMoved.current && doc.fileType === 'pdf') setShowPdf(true)
     if (onPositionChange) onPositionChange(doc.id, finalPos.x, finalPos.y)
+    setIsDragging(false)
   }
+
+  useEffect(() => {
+    if (!isCardEditing) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsCardEditing(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isCardEditing])
 
   const handleCardClick = (e) => {
     if (e.target.closest('textarea, button')) return
@@ -114,10 +128,10 @@ export default function DocumentCard({
   }
 
   const cardStyle = {
-    ...(onPositionChange && pos ? {
+    ...(onPositionChange && posInitialized && posRef.current ? {
       position: 'fixed',
-      left: pos.x,
-      top: pos.y,
+      left: posRef.current.x,
+      top: posRef.current.y,
       cursor: isDragging ? 'grabbing' : 'grab',
       userSelect: 'none',
       touchAction: 'none',
@@ -146,6 +160,7 @@ export default function DocumentCard({
               <button
                 type="button"
                 className="card-more-btn"
+                onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
                 onClick={e => { e.stopPropagation(); setShowCardActions(true) }}
                 aria-label="Card options"
               >
@@ -172,6 +187,7 @@ export default function DocumentCard({
                 className="photo-card__caption-inline-edit"
                 value={editName}
                 onChange={e => setEditName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSaveCardEdit() } }}
                 placeholder="document name..."
                 aria-label="Edit document name"
                 autoFocus
@@ -192,6 +208,18 @@ export default function DocumentCard({
             doc.name && <span className="photo-card__caption-line">{doc.name}</span>
           )}
         </div>
+
+        {isCardEditing && (
+          <button
+            type="button"
+            className="card-edit-confirm-btn"
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
+            onClick={handleSaveCardEdit}
+            aria-label="Save"
+          >
+            <Check size={16} />
+          </button>
+        )}
       </div>
 
       {isCardEditing && cardEditRect && (

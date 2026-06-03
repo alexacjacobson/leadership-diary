@@ -971,6 +971,21 @@ textarea, input {
   color: var(--color-primary);
 }
 
+/* Checkmark confirm button — bottom right of card during edit mode */
+.card-edit-confirm-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  z-index: 25;
+}
+
 /* Floating edit panel below card */
 .card-edit-panel {
   background: white;

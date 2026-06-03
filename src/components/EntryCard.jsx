@@ -43,6 +43,15 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
   const [editPhotos, setEditPhotos] = useState(entry.photos || [])
   const replaceRefs = useRef({})
 
+  useEffect(() => {
+    if (!isEditing) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') handleCancelEdit()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isEditing])
+
   const handleStartEdit = () => {
     setEditReflection(entry.reflection || '')
     setEditBiggestChallenges(entry.biggestChallenges || '')
