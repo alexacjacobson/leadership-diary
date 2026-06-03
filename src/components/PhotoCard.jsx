@@ -1,6 +1,15 @@
 import { useRef, useState, useEffect } from 'react'
-import { MoreHorizontal, Pencil, Trash2, Check } from 'lucide-react'
+import { Trash2, Check } from 'lucide-react'
 import ColorPicker from './ColorPicker'
+
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
 
 export default function PhotoCard({
   photo,
@@ -11,30 +20,18 @@ export default function PhotoCard({
   onCardDelete,
 }) {
   const cardRef = useRef(null)
-  const actionsRef = useRef(null)
+  const replaceFileRef = useRef(null)
   const dragOffset = useRef({ x: 0, y: 0 })
   const posRef = useRef(null)
 
   const [isDragging, setIsDragging] = useState(false)
   const [posInitialized, setPosInitialized] = useState(false)
-  const [showCardActions, setShowCardActions] = useState(false)
   const [isCardEditing, setIsCardEditing] = useState(false)
   const [editCaption, setEditCaption] = useState('')
   const [editColor, setEditColor] = useState('')
   const [cardEditRect, setCardEditRect] = useState(null)
 
   const isPostedMode = !!onCardUpdate
-
-  useEffect(() => {
-    if (!showCardActions) return
-    const handleOutside = (e) => {
-      if (actionsRef.current && !actionsRef.current.contains(e.target)) {
-        setShowCardActions(false)
-      }
-    }
-    document.addEventListener('mousedown', handleOutside)
-    return () => document.removeEventListener('mousedown', handleOutside)
-  }, [showCardActions])
 
   useEffect(() => {
     if (!onPositionChange) return
@@ -54,6 +51,7 @@ export default function PhotoCard({
     if (!onPositionChange) return
     if (e.target.closest('textarea, button')) return
     if (isCardEditing) return
+    if (e.detail > 1) return
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
     dragOffset.current = {
@@ -95,14 +93,13 @@ export default function PhotoCard({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isCardEditing])
 
-  const handleStartCardEdit = (e) => {
-    e.stopPropagation()
+  const handleStartCardEdit = () => {
+    if (!isPostedMode) return
     setEditCaption(photo.caption || '')
     setEditColor(photo.cardColor)
     const rect = cardRef.current.getBoundingClientRect()
     setCardEditRect({ left: rect.left, bottom: rect.bottom, width: rect.width })
     setIsCardEditing(true)
-    setShowCardActions(false)
   }
 
   const handleSaveCardEdit = () => {
@@ -114,6 +111,13 @@ export default function PhotoCard({
   const handleCardDelete = (e) => {
     e.stopPropagation()
     onCardDelete(photo.id)
+  }
+
+  const handleReplacePhoto = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    toBase64(file).then(src => onCardUpdate(photo.id, { src }))
+    e.target.value = ''
   }
 
   const cardStyle = {
@@ -138,33 +142,35 @@ export default function PhotoCard({
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onDoubleClick={isPostedMode ? handleStartCardEdit : undefined}
       >
-        <div className="photo-card__well">
+        <div
+          className="photo-card__well"
+          onClick={isCardEditing && isPostedMode ? () => replaceFileRef.current?.click() : undefined}
+          style={isCardEditing && isPostedMode ? { cursor: 'pointer' } : undefined}
+        >
           <img src={photo.src} alt={photo.caption || 'Entry photo'} />
+          {isCardEditing && isPostedMode && (
+            <div className="photo-card__well-overlay">
+              <span>click to replace</span>
+            </div>
+          )}
         </div>
 
         {isPostedMode && (
-          <div className="card-controls-overlay" ref={actionsRef}>
-            {!showCardActions && !isCardEditing ? (
+          <div className="card-controls-overlay">
+            {isCardEditing && (
               <button
                 type="button"
-                className="card-more-btn"
+                className="card-action-btn"
                 onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
-                onClick={e => { e.stopPropagation(); setShowCardActions(true) }}
-                aria-label="Card options"
+                onClick={handleCardDelete}
+                aria-label="Delete photo"
+                style={{ color: '#888888' }}
               >
-                <MoreHorizontal size={14} />
+                <Trash2 size={13} />
               </button>
-            ) : showCardActions ? (
-              <div className="card-action-btns">
-                <button type="button" className="card-action-btn" onClick={handleStartCardEdit} aria-label="Edit card">
-                  <Pencil size={13} />
-                </button>
-                <button type="button" className="card-action-btn" onClick={handleCardDelete} aria-label="Delete card">
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            ) : null}
+            )}
           </div>
         )}
 
@@ -216,6 +222,15 @@ export default function PhotoCard({
           </button>
         )}
       </div>
+
+      <input
+        ref={replaceFileRef}
+        type="file"
+        accept="image/*"
+        className="visually-hidden"
+        onChange={handleReplacePhoto}
+        aria-label="Replace photo"
+      />
 
       {isCardEditing && cardEditRect && (
         <div

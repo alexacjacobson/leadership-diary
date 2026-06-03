@@ -157,7 +157,7 @@ export default function NewEntryForm({ entryCount, onSave }) {
         <div className="module-pill-wrapper" ref={moduleDropdownRef}>
           <button
             type="button"
-            className="module-pill-btn"
+            className={`module-pill-btn${showModuleDropdown ? ' module-pill-btn--open' : ''}`}
             onClick={() => setShowModuleDropdown(v => !v)}
             aria-label="Select module"
           >
@@ -190,7 +190,6 @@ export default function NewEntryForm({ entryCount, onSave }) {
           aria-label="Weekly reflection"
         />
 
-        <hr className="form-section-divider" />
         <div className="form-section-group">
           <p className="form-section-label">Biggest Challenges</p>
           <textarea
@@ -202,7 +201,6 @@ export default function NewEntryForm({ entryCount, onSave }) {
           />
         </div>
 
-        <hr className="form-section-divider" />
         <div className="form-section-group">
           <p className="form-section-label">Key Learnings</p>
           <textarea
@@ -214,7 +212,6 @@ export default function NewEntryForm({ entryCount, onSave }) {
           />
         </div>
 
-        <hr className="form-section-divider" />
         <div className="form-section-group">
           <p className="form-section-label">New Goals</p>
           <textarea

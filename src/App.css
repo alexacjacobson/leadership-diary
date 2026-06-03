@@ -302,12 +302,19 @@ textarea, input {
   cursor: pointer;
 }
 
+.module-pill-btn--open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: none;
+}
+
 .module-pill-label {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  text-align: left;
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 13px;
@@ -316,18 +323,22 @@ textarea, input {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 24px;
+  padding-left: 24px;
 }
 
 .module-pill-dropdown {
   position: absolute;
-  top: calc(100% + 6px);
+  top: 100%;
   left: 0;
   z-index: 100;
   width: 330px;
   background: #FAF8F2;
-  border-radius: 2px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
   border: 2px solid #D45FA8;
+  border-top: none;
   box-shadow: none;
   overflow: hidden;
 }
@@ -369,7 +380,7 @@ textarea, input {
   border-radius: 4px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  padding: 20px 24px;
+  padding: 24px 24px 20px;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -381,7 +392,7 @@ textarea, input {
 /* Reflection textarea — normal flow, transparent on white box */
 .reflection-textarea {
   width: 100%;
-  min-height: 160px;
+  min-height: 80px;
   background: transparent;
   border: none;
   outline: none;
@@ -412,7 +423,6 @@ textarea, input {
 /* Section divider inside white box */
 .form-section-divider {
   border: none;
-  border-top: 1px solid rgba(136, 136, 136, 0.2);
   margin: 12px 0;
 }
 
@@ -426,8 +436,8 @@ textarea, input {
 /* Section label (all-caps mono label) */
 .form-section-label {
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--color-muted);
+  font-size: 11px;
+  color: #3B5BDB;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -632,6 +642,7 @@ textarea, input {
   border-radius: 4px;
   padding: 16px;
   margin-bottom: var(--space-6);
+  position: relative;
 }
 
 .entry-reflection {
@@ -715,13 +726,13 @@ textarea, input {
 }
 
 .photo-card--horizontal {
-  width: 305px;
-  height: 274px;
+  width: 275px;
+  height: 247px;
 }
 
 .photo-card--vertical {
-  width: 195px;
-  height: 286px;
+  width: 176px;
+  height: 257px;
 }
 
 .photo-card__well {
@@ -732,23 +743,46 @@ textarea, input {
 }
 
 .photo-card--horizontal .photo-card__well {
-  left: 15px;
-  top: 18px;
-  width: 274px;
-  height: 186px;
+  left: 14px;
+  top: 16px;
+  width: 247px;
+  height: 167px;
 }
 
 .photo-card--vertical .photo-card__well {
-  left: 14px;
-  top: 18px;
-  width: 166px;
-  height: 186px;
+  left: 13px;
+  top: 16px;
+  width: 149px;
+  height: 167px;
 }
 
 .photo-card__well img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.photo-card__well-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.photo-card__well:hover .photo-card__well-overlay {
+  opacity: 1;
+}
+
+.photo-card__well-overlay span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: white;
+  letter-spacing: 0.05em;
 }
 
 /* Read-mode caption */
@@ -789,11 +823,11 @@ textarea, input {
 }
 
 .photo-card--horizontal .photo-card__caption-edit {
-  height: 70px;
+  height: 63px;
 }
 
 .photo-card--vertical .photo-card__caption-edit {
-  height: 82px;
+  height: 74px;
 }
 
 /* =====================================================
@@ -937,11 +971,11 @@ textarea, input {
 }
 
 .photo-card--horizontal .photo-card__caption-area {
-  height: 70px;
+  height: 63px;
 }
 
 .photo-card--vertical .photo-card__caption-area {
-  height: 82px;
+  height: 74px;
 }
 
 .photo-card--editing .photo-card__caption-area {
@@ -989,7 +1023,7 @@ textarea, input {
 .card-controls-overlay {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
   z-index: 20;
 }
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { MoreHorizontal, Pencil, Trash2, X } from 'lucide-react'
+import { Trash2, X } from 'lucide-react'
 import PhotoCard from './PhotoCard'
 import DocumentCard from './DocumentCard'
 import ColorPicker from './ColorPicker'
@@ -37,20 +37,7 @@ function assignOrientations(photos) {
 }
 
 export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate }) {
-  const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const actionsRef = useRef(null)
-
-  useEffect(() => {
-    if (!showActions) return
-    const handleOutside = (e) => {
-      if (actionsRef.current && !actionsRef.current.contains(e.target)) {
-        setShowActions(false)
-      }
-    }
-    document.addEventListener('mousedown', handleOutside)
-    return () => document.removeEventListener('mousedown', handleOutside)
-  }, [showActions])
   const [editReflection, setEditReflection] = useState(entry.reflection || '')
   const [editBiggestChallenges, setEditBiggestChallenges] = useState(entry.biggestChallenges || '')
   const [editKeyLearnings, setEditKeyLearnings] = useState(entry.keyLearnings || '')
@@ -206,38 +193,28 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
       className="entry-card"
       style={{ animationDelay: `${index * 80}ms` }}
     >
-      {/* Week/date + entry controls */}
+      {/* Entry controls */}
       <div className="entry-meta">
-        <span className="entry-week-label">
-          {entry.weekLabel} — {formatDate(entry.createdAt)}
-        </span>
-        <div className="entry-controls" ref={actionsRef}>
-          {isUnlocked && (!showActions && !isEditing ? (
+        <div className="entry-controls">
+          {isUnlocked && isEditing && (
             <button
-              className="entry-more-btn"
-              onClick={() => setShowActions(true)}
-              aria-label="Entry options"
+              className="entry-action-btn"
+              onClick={() => onDelete(entry.id)}
+              aria-label="Delete entry"
+              style={{ color: '#888888' }}
             >
-              <MoreHorizontal size={16} />
+              <Trash2 size={15} />
             </button>
-          ) : (
-            !isEditing && (
-              <div className="entry-action-btns">
-                <button className="entry-action-btn" onClick={handleStartEdit} aria-label="Edit entry">
-                  <Pencil size={15} />
-                </button>
-                <button className="entry-action-btn" onClick={() => onDelete(entry.id)} aria-label="Delete entry">
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            )
-          ))}
+          )}
         </div>
       </div>
 
       {isEditing ? (
         <>
           <div className="entry-reflection-bg">
+            <span className="entry-week-label" style={{ position: 'absolute', top: '16px', right: '16px', marginBottom: 0 }}>
+              {entry.weekLabel} — {formatDate(entry.createdAt)}
+            </span>
             {entry.module && (
               <span className="entry-module-label">{entry.module}</span>
             )}
@@ -415,7 +392,13 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
       ) : (
         <>
           {hasContent && (
-            <div className="entry-reflection-bg">
+            <div
+              className="entry-reflection-bg"
+              onDoubleClick={isUnlocked ? handleStartEdit : undefined}
+            >
+              <span className="entry-week-label" style={{ position: 'absolute', top: '16px', right: '16px', marginBottom: 0 }}>
+                {entry.weekLabel} — {formatDate(entry.createdAt)}
+              </span>
               {entry.module && (
                 <span className="entry-module-label">{entry.module}</span>
               )}

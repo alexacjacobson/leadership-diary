@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { MoreHorizontal, Pencil, Trash2, Check } from 'lucide-react'
+import { Trash2, Check } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 import documentIconSvg from '../assets/document.svg'
 
@@ -12,7 +12,6 @@ export default function DocumentCard({
   onCardDelete,
 }) {
   const cardRef = useRef(null)
-  const actionsRef = useRef(null)
   const dragOffset = useRef({ x: 0, y: 0 })
   const posRef = useRef(null)
   const hasMoved = useRef(false)
@@ -20,24 +19,12 @@ export default function DocumentCard({
   const [isDragging, setIsDragging] = useState(false)
   const [posInitialized, setPosInitialized] = useState(false)
   const [showPdf, setShowPdf] = useState(false)
-  const [showCardActions, setShowCardActions] = useState(false)
   const [isCardEditing, setIsCardEditing] = useState(false)
   const [editName, setEditName] = useState('')
   const [editColor, setEditColor] = useState('')
   const [cardEditRect, setCardEditRect] = useState(null)
 
   const isPostedMode = !!onCardUpdate
-
-  useEffect(() => {
-    if (!showCardActions) return
-    const handleOutside = (e) => {
-      if (actionsRef.current && !actionsRef.current.contains(e.target)) {
-        setShowCardActions(false)
-      }
-    }
-    document.addEventListener('mousedown', handleOutside)
-    return () => document.removeEventListener('mousedown', handleOutside)
-  }, [showCardActions])
 
   useEffect(() => {
     if (!onPositionChange) return
@@ -57,6 +44,7 @@ export default function DocumentCard({
     if (!onPositionChange) return
     if (e.target.closest('textarea, button')) return
     if (isCardEditing) return
+    if (e.detail > 1) return
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
     hasMoved.current = false
@@ -106,14 +94,13 @@ export default function DocumentCard({
     if (!onPositionChange && doc.fileType === 'pdf') setShowPdf(true)
   }
 
-  const handleStartCardEdit = (e) => {
-    e.stopPropagation()
+  const handleStartCardEdit = () => {
+    if (!isPostedMode) return
     setEditName(doc.name || '')
     setEditColor(doc.cardColor || '#3B5BDB')
     const rect = cardRef.current.getBoundingClientRect()
     setCardEditRect({ left: rect.left, bottom: rect.bottom, width: rect.width })
     setIsCardEditing(true)
-    setShowCardActions(false)
   }
 
   const handleSaveCardEdit = () => {
@@ -149,33 +136,26 @@ export default function DocumentCard({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onClick={!onPositionChange ? handleCardClick : undefined}
+        onDoubleClick={isPostedMode ? handleStartCardEdit : undefined}
       >
         <div className="doc-card__image-area">
           <img src={documentIconSvg} alt="" />
         </div>
 
         {isPostedMode && (
-          <div className="card-controls-overlay" ref={actionsRef}>
-            {!showCardActions && !isCardEditing ? (
+          <div className="card-controls-overlay">
+            {isCardEditing && (
               <button
                 type="button"
-                className="card-more-btn"
+                className="card-action-btn"
                 onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
-                onClick={e => { e.stopPropagation(); setShowCardActions(true) }}
-                aria-label="Card options"
+                onClick={handleCardDelete}
+                aria-label="Delete document"
+                style={{ color: '#888888' }}
               >
-                <MoreHorizontal size={14} />
+                <Trash2 size={13} />
               </button>
-            ) : showCardActions ? (
-              <div className="card-action-btns">
-                <button type="button" className="card-action-btn" onClick={handleStartCardEdit} aria-label="Edit card">
-                  <Pencil size={13} />
-                </button>
-                <button type="button" className="card-action-btn" onClick={handleCardDelete} aria-label="Delete card">
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            ) : null}
+            )}
           </div>
         )}
 
