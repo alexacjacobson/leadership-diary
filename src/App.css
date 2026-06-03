@@ -206,17 +206,18 @@ textarea, input {
 
 /* Form title — "My Leadership Diary" heading flush above white box */
 .form-title {
-  display: block;
-  font-family: var(--font-display);
+  font-family: 'Libre Baskerville', serif;
   font-style: italic;
-  font-size: 64px;
-  line-height: 0.85;
-  white-space: nowrap;
-  color: var(--color-primary);
-  text-align: left;
   font-weight: 400;
+  font-size: 64px;
+  color: #D45FA8;
   margin: 0;
+  margin-top: -1px;
   padding: 0;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+  display: block;
 }
 
 /* Module pill selector — lives inside the white box */
@@ -230,17 +231,14 @@ textarea, input {
   position: relative;
   display: inline-flex;
   align-items: center;
-  background: none;
+  justify-content: center;
+  background: #D45FA8;
+  border-radius: 20px;
+  width: 330px;
+  height: 40px;
   border: none;
   padding: 0;
   cursor: pointer;
-  line-height: 1;
-}
-
-.module-pill-bg {
-  display: block;
-  width: 330px;
-  height: 40px;
 }
 
 .module-pill-label {
@@ -265,27 +263,23 @@ textarea, input {
   top: calc(100% + 6px);
   left: 0;
   z-index: 100;
-}
-
-.module-pill-dropdown-bg {
-  display: block;
   width: 330px;
-  height: 250px;
-}
-
-.module-pill-items {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 5px 0;
+  background: #FAF8F2;
+  border-radius: 8px;
+  border: 1px solid rgba(212, 95, 168, 0.25);
   overflow: hidden;
 }
 
+.module-pill-items {
+  display: flex;
+  flex-direction: column;
+  padding: 5px 0;
+}
+
 .module-pill-item {
-  flex: 1;
   display: flex;
   align-items: center;
+  height: 40px;
   background: none;
   border: none;
   padding: 0 20px;
@@ -321,7 +315,7 @@ textarea, input {
   gap: 0;
   position: relative;
   z-index: 1;
-  margin-top: 0;
+  margin-top: -12px;
 }
 
 /* Reflection textarea — normal flow, transparent on white box */

@@ -3,7 +3,6 @@ import { X } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 import PhotoCard from './PhotoCard'
 import DocumentCard from './DocumentCard'
-import moduleButtonSvg from '../assets/Model-button.svg'
 
 const MODULES = [
   'Module 1 — Introduction',
@@ -162,12 +161,10 @@ export default function NewEntryForm({ entryCount, onSave }) {
             onClick={() => setShowModuleDropdown(v => !v)}
             aria-label="Select module"
           >
-            <img src={moduleButtonSvg} alt="" className="module-pill-bg" />
             <span className="module-pill-label">{module}</span>
           </button>
           {showModuleDropdown && (
             <div className="module-pill-dropdown">
-              <img src={moduleDropdownSvg} alt="" className="module-pill-dropdown-bg" />
               <div className="module-pill-items">
                 {MODULES.map(m => (
                   <button

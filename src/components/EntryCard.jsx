@@ -158,14 +158,12 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
         </div>
       </div>
 
-      {/* Module label — floats just above the white box */}
-      {entry.module && (
-        <span className="entry-module-label">{entry.module}</span>
-      )}
-
       {isEditing ? (
         <>
           <div className="entry-reflection-bg">
+            {entry.module && (
+              <span className="entry-module-label">{entry.module}</span>
+            )}
             <textarea
               className="entry-edit-textarea"
               value={editReflection}
@@ -252,6 +250,9 @@ export default function EntryCard({ entry, index, onDelete, onUpdate }) {
         <>
           {hasContent && (
             <div className="entry-reflection-bg">
+              {entry.module && (
+                <span className="entry-module-label">{entry.module}</span>
+              )}
               {entry.reflection && (
                 <p className="entry-reflection">{entry.reflection}</p>
               )}
