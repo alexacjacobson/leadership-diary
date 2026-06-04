@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getEntries, saveEntry, updateEntry, deleteEntry } from './hooks/useEntries'
 import NavHeader from './components/NavHeader'
 import EntryCard from './components/EntryCard'
@@ -7,6 +7,8 @@ import NewEntryForm from './components/NewEntryForm'
 export default function App() {
   const [entries, setEntries] = useState([])
   const [isUnlocked, setIsUnlocked] = useState(false)
+  const [showNewEntryForm, setShowNewEntryForm] = useState(false)
+  const formRef = useRef(null)
   const [showPinModal, setShowPinModal] = useState(false)
   const [pinValue, setPinValue] = useState('')
 
@@ -17,6 +19,7 @@ export default function App() {
   const handleSave = async (entry) => {
     await saveEntry(entry)
     setEntries(prev => [...prev, entry])
+    setShowNewEntryForm(false)
   }
 
   const handleUpdate = async (id, patch) => {
@@ -49,6 +52,7 @@ export default function App() {
   const handleLockClick = () => {
     if (isUnlocked) {
       setIsUnlocked(false)
+      setShowNewEntryForm(false)
     } else {
       setShowPinModal(true)
     }
@@ -57,13 +61,30 @@ export default function App() {
   return (
     <>
       <NavHeader isUnlocked={isUnlocked} onLockClick={handleLockClick} />
+      {isUnlocked && (
+        <button
+          type="button"
+          className="btn-new-entry"
+          style={{ position: 'fixed', top: '70px', right: '24px', zIndex: 100 }}
+          onClick={() => showNewEntryForm ? formRef.current?.save() : setShowNewEntryForm(true)}
+        >
+          {showNewEntryForm ? 'save entry' : 'new entry'}
+        </button>
+      )}
+
       <div className="app">
-        {isUnlocked && (
-          <NewEntryForm
-            entryCount={entries.length}
-            onSave={handleSave}
-          />
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <h1 className="form-title form-title--page">My Leadership Diary</h1>
+
+          {isUnlocked && showNewEntryForm && (
+            <NewEntryForm
+              ref={formRef}
+              entryCount={entries.length}
+              onSave={handleSave}
+              onCancel={() => setShowNewEntryForm(false)}
+            />
+          )}
+        </div>
 
         <main id="entries" className="entry-feed">
           {[...entries].reverse().map((entry, i) => (

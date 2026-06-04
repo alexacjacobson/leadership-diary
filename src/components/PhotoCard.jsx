@@ -38,13 +38,12 @@ export default function PhotoCard({
     const raw = localStorage.getItem(`card-pos-${photo.id}`)
     if (raw) {
       posRef.current = JSON.parse(raw)
+      setPosInitialized(true)
     } else if (photo.x !== undefined && photo.y !== undefined) {
       posRef.current = { x: photo.x, y: photo.y }
-    } else if (cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect()
-      posRef.current = { x: rect.left, y: rect.top }
+      setPosInitialized(true)
     }
-    setPosInitialized(true)
+    // No position saved — card stays in normal document flow
   }, [])
 
   const onPointerDown = (e) => {
@@ -54,6 +53,14 @@ export default function PhotoCard({
     if (e.detail > 1) return
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
+    if (!posRef.current && cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect()
+      posRef.current = { x: rect.left, y: rect.top }
+      cardRef.current.style.position = 'fixed'
+      cardRef.current.style.left = rect.left + 'px'
+      cardRef.current.style.top = rect.top + 'px'
+      setPosInitialized(true)
+    }
     dragOffset.current = {
       x: e.clientX - (posRef.current?.x ?? 0),
       y: e.clientY - (posRef.current?.y ?? 0),

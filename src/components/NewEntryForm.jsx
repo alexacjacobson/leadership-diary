@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { X } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 import PhotoCard from './PhotoCard'
@@ -41,7 +41,7 @@ function fileExtension(filename) {
   return filename.split('.').pop().toLowerCase()
 }
 
-export default function NewEntryForm({ entryCount, onSave }) {
+const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCancel }, ref) {
   const [module, setModule] = useState(MODULES[0])
   const [showModuleDropdown, setShowModuleDropdown] = useState(false)
   const moduleDropdownRef = useRef(null)
@@ -148,16 +148,18 @@ export default function NewEntryForm({ entryCount, onSave }) {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handlePost()
   }
 
+  useImperativeHandle(ref, () => ({
+    save: () => { if (canPost) handlePost() },
+  }))
+
   return (
     <section className="form-section">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <h1 className="form-title">My Leadership Diary</h1>
-
       <div className="form-white-box">
         <div className="module-pill-wrapper" ref={moduleDropdownRef}>
           <button
             type="button"
-            className={`module-pill-btn${showModuleDropdown ? ' module-pill-btn--open' : ''}`}
+            className="module-pill-btn"
             onClick={() => setShowModuleDropdown(v => !v)}
             aria-label="Select module"
           >
@@ -315,12 +317,13 @@ export default function NewEntryForm({ entryCount, onSave }) {
         <button
           type="button"
           className="form-text-action"
-          onClick={handlePost}
-          disabled={!canPost}
+          onClick={onCancel}
         >
-          save entry
+          cancel entry
         </button>
       </div>
     </section>
   )
-}
+})
+
+export default NewEntryForm

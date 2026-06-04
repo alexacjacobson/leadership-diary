@@ -119,8 +119,14 @@ textarea, input {
   color: var(--color-ink);
 }
 
-.nav-lock-btn {
+.nav-right {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-lock-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -281,6 +287,18 @@ textarea, input {
   display: block;
 }
 
+/* Page-level title — always visible, floats above content */
+.form-title--page {
+  margin: 0;
+  padding: 0;
+  line-height: 0.85;
+  display: block;
+  margin-bottom: -0.08em;
+  background: transparent;
+  position: relative;
+  z-index: 2;
+}
+
 /* Module pill selector — lives inside the white box */
 .module-pill-wrapper {
   position: relative;
@@ -294,18 +312,14 @@ textarea, input {
   align-items: center;
   justify-content: center;
   background: #D45FA8;
-  border-radius: 20px;
+  border-radius: 33px;
   width: 330px;
   height: 40px;
   border: none;
   padding: 0;
   cursor: pointer;
-}
-
-.module-pill-btn--open {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  border-bottom: none;
+  z-index: 10;
+  margin-bottom: -4px;
 }
 
 .module-pill-label {
@@ -330,13 +344,12 @@ textarea, input {
   position: absolute;
   top: 100%;
   left: 0;
-  z-index: 100;
+  margin-top: -24px;
+  padding-top: 24px;
+  z-index: 9;
   width: 330px;
   background: #FAF8F2;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-radius: 0 0 4px 4px;
   border: 2px solid #D45FA8;
   border-top: none;
   box-shadow: none;
@@ -355,7 +368,7 @@ textarea, input {
   background: transparent;
   border: none;
   padding: 12px 16px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   font-weight: 500;
   font-size: 13px;
   color: #D45FA8;
@@ -386,7 +399,7 @@ textarea, input {
   gap: 0;
   position: relative;
   z-index: 1;
-  margin-top: -12px;
+  margin-top: 0;
 }
 
 /* Reflection textarea — normal flow, transparent on white box */
@@ -552,10 +565,36 @@ textarea, input {
 /* =====================================================
    ENTRY FEED
    ===================================================== */
+/* =====================================================
+   NEW ENTRY BUTTON
+   ===================================================== */
+.btn-new-entry {
+  background: #3B5BDB;
+  color: #FFFFFF;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 500;
+  border-radius: 33px;
+  padding: 12px 32px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-block;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  margin-bottom: var(--space-8);
+}
+
+.btn-new-entry:hover {
+  background: #FFFFFF;
+  color: #3B5BDB;
+  border-color: #3B5BDB;
+}
+
 .entry-feed {
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
+  margin-top: 40px;
 }
 
 @keyframes fadeUp {
@@ -707,7 +746,7 @@ textarea, input {
 .entry-photos {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6);
+  gap: 16px;
   align-items: flex-start;
 }
 
