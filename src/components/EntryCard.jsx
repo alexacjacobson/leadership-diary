@@ -191,7 +191,10 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   return (
     <article
       className="entry-card"
-      style={{ animationDelay: `${index * 80}ms` }}
+      style={{
+        animationDelay: `${index * 80}ms`,
+        ...(isEditing ? { outline: '2px solid #3B5BDB', borderRadius: '4px' } : {}),
+      }}
     >
       {/* Entry controls */}
       <div className="entry-meta">
@@ -210,54 +213,52 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
       </div>
 
       {isEditing ? (
-        <>
-          <div className="entry-reflection-bg">
-            <span className="entry-week-label" style={{ position: 'absolute', top: '16px', right: '16px', marginBottom: 0 }}>
-              {entry.weekLabel} — {formatDate(entry.createdAt)}
-            </span>
-            {entry.module && (
-              <span className="entry-module-label">{entry.module}</span>
-            )}
-            <textarea
-              className="entry-edit-textarea"
-              value={editReflection}
-              onChange={e => setEditReflection(e.target.value)}
-              rows={4}
-              autoFocus
-              placeholder="Weekly reflection..."
-              aria-label="Edit reflection"
-            />
-            <hr className="entry-section-divider" />
-            <p className="form-section-label">Biggest Challenges</p>
-            <textarea
-              className="entry-edit-textarea"
-              style={{ minHeight: '60px' }}
-              value={editBiggestChallenges}
-              onChange={e => setEditBiggestChallenges(e.target.value)}
-              rows={2}
-              aria-label="Edit biggest challenges"
-            />
-            <hr className="entry-section-divider" />
-            <p className="form-section-label">Key Learnings</p>
-            <textarea
-              className="entry-edit-textarea"
-              style={{ minHeight: '60px' }}
-              value={editKeyLearnings}
-              onChange={e => setEditKeyLearnings(e.target.value)}
-              rows={2}
-              aria-label="Edit key learnings"
-            />
-            <hr className="entry-section-divider" />
-            <p className="form-section-label">New Goals</p>
-            <textarea
-              className="entry-edit-textarea"
-              style={{ minHeight: '60px' }}
-              value={editNewGoals}
-              onChange={e => setEditNewGoals(e.target.value)}
-              rows={2}
-              aria-label="Edit new goals"
-            />
-          </div>
+        <div className="entry-reflection-bg" style={{ marginBottom: 0 }}>
+          <span className="entry-week-label" style={{ position: 'absolute', top: '16px', right: '16px', marginBottom: 0 }}>
+            {entry.weekLabel} — {formatDate(entry.createdAt)}
+          </span>
+          {entry.module && (
+            <span className="entry-module-label">{entry.module}</span>
+          )}
+          <textarea
+            className="entry-edit-textarea"
+            value={editReflection}
+            onChange={e => setEditReflection(e.target.value)}
+            rows={4}
+            autoFocus
+            placeholder="Weekly reflection..."
+            aria-label="Edit reflection"
+          />
+          <hr className="entry-section-divider" />
+          <p className="form-section-label">Biggest Challenges</p>
+          <textarea
+            className="entry-edit-textarea"
+            style={{ minHeight: '60px' }}
+            value={editBiggestChallenges}
+            onChange={e => setEditBiggestChallenges(e.target.value)}
+            rows={2}
+            aria-label="Edit biggest challenges"
+          />
+          <hr className="entry-section-divider" />
+          <p className="form-section-label">Key Learnings</p>
+          <textarea
+            className="entry-edit-textarea"
+            style={{ minHeight: '60px' }}
+            value={editKeyLearnings}
+            onChange={e => setEditKeyLearnings(e.target.value)}
+            rows={2}
+            aria-label="Edit key learnings"
+          />
+          <hr className="entry-section-divider" />
+          <p className="form-section-label">New Goals</p>
+          <textarea
+            className="entry-edit-textarea"
+            style={{ minHeight: '60px' }}
+            value={editNewGoals}
+            onChange={e => setEditNewGoals(e.target.value)}
+            rows={2}
+            aria-label="Edit new goals"
+          />
 
           <div style={{ display: 'flex', gap: '24px', marginTop: '12px' }}>
             <button
@@ -302,13 +303,6 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                     photo={photo}
                     onCaptionChange={caption => updateEditPhoto(photo.id, { caption })}
                   />
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => replaceRefs.current[photo.id]?.click()}
-                  >
-                    Replace photo
-                  </button>
                   <input
                     ref={el => { if (el) replaceRefs.current[photo.id] = el }}
                     type="file"
@@ -380,15 +374,15 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             </div>
           )}
 
-          <div className="entry-edit-actions">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={handleCancelEdit}>
-              Cancel
+          <div className="entry-edit-actions" style={{ gap: '32px' }}>
+            <button type="button" className="form-text-action" onClick={handleCancelEdit}>
+              cancel entry
             </button>
-            <button type="button" className="btn btn-primary btn-sm" onClick={handleSave}>
-              Save changes
+            <button type="button" className="form-text-action" onClick={handleSave}>
+              save changes
             </button>
           </div>
-        </>
+        </div>
       ) : (
         <>
           {hasContent && (

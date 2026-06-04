@@ -1,7 +1,12 @@
 import { useRef, useState, useEffect } from 'react'
-import { Trash2, Check } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 import documentIconSvg from '../assets/document.svg'
+
+const DARK_COLORS = new Set(['#1A1A1A', '#067A42', '#3B5BDB'])
+function trashIconColor(color) {
+  return DARK_COLORS.has(color) ? '#FFFFFF' : '#1A1A1A'
+}
 
 export default function DocumentCard({
   doc,
@@ -15,6 +20,7 @@ export default function DocumentCard({
   const dragOffset = useRef({ x: 0, y: 0 })
   const posRef = useRef(null)
   const hasMoved = useRef(false)
+  const editPanelRef = useRef(null)
 
   const [isDragging, setIsDragging] = useState(false)
   const [posInitialized, setPosInitialized] = useState(false)
@@ -96,6 +102,20 @@ export default function DocumentCard({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isCardEditing])
 
+  useEffect(() => {
+    if (!isCardEditing) return
+    const handleMouseDown = (e) => {
+      if (
+        cardRef.current && !cardRef.current.contains(e.target) &&
+        (!editPanelRef.current || !editPanelRef.current.contains(e.target))
+      ) {
+        handleSaveCardEdit()
+      }
+    }
+    document.addEventListener('mousedown', handleMouseDown)
+    return () => document.removeEventListener('mousedown', handleMouseDown)
+  }, [isCardEditing, editName, editColor])
+
   const handleCardClick = (e) => {
     if (e.target.closest('textarea, button')) return
     if (!onPositionChange && doc.fileType === 'pdf') setShowPdf(true)
@@ -137,7 +157,7 @@ export default function DocumentCard({
     <>
       <div
         ref={cardRef}
-        className={`doc-card${onPositionChange ? ' photo-card--draggable' : ''}${isDragging ? ' photo-card--dragging' : ''}`}
+        className={`doc-card${onPositionChange ? ' photo-card--draggable' : ''}${isDragging ? ' photo-card--dragging' : ''}${isCardEditing ? ' doc-card--editing' : ''}`}
         style={cardStyle}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -149,21 +169,23 @@ export default function DocumentCard({
           <img src={documentIconSvg} alt="" />
         </div>
 
-        {isPostedMode && (
-          <div className="card-controls-overlay">
-            {isCardEditing && (
-              <button
-                type="button"
-                className="card-action-btn"
-                onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
-                onClick={handleCardDelete}
-                aria-label="Delete document"
-                style={{ color: '#888888' }}
-              >
-                <Trash2 size={13} />
-              </button>
-            )}
-          </div>
+        {isPostedMode && isCardEditing && (
+          <button
+            type="button"
+            className="card-action-btn"
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
+            onClick={handleCardDelete}
+            aria-label="Delete document"
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              right: '10px',
+              zIndex: 25,
+              color: '#FFFFFF',
+            }}
+          >
+            <Trash2 size={13} />
+          </button>
         )}
 
         <div className="doc-card__caption-area">
@@ -196,36 +218,8 @@ export default function DocumentCard({
           )}
         </div>
 
-        {isCardEditing && (
-          <button
-            type="button"
-            className="card-edit-confirm-btn"
-            onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
-            onClick={handleSaveCardEdit}
-            aria-label="Save"
-          >
-            <Check size={16} />
-          </button>
-        )}
       </div>
 
-      {isCardEditing && cardEditRect && (
-        <div
-          className="card-edit-panel"
-          style={{
-            position: 'fixed',
-            left: cardEditRect.left + 'px',
-            top: (cardEditRect.bottom + 8) + 'px',
-            width: cardEditRect.width + 'px',
-            zIndex: 500,
-          }}
-        >
-          <ColorPicker value={editColor} onChange={setEditColor} />
-          <button type="button" className="form-text-action" onClick={handleSaveCardEdit}>
-            save
-          </button>
-        </div>
-      )}
 
       {showPdf && (
         <div className="pdf-modal-overlay" onClick={() => setShowPdf(false)}>

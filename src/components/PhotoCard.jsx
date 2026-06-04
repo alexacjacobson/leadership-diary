@@ -1,6 +1,11 @@
 import { useRef, useState, useEffect } from 'react'
-import { Trash2, Check } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import ColorPicker from './ColorPicker'
+
+const DARK_COLORS = new Set(['#1A1A1A', '#067A42', '#3B5BDB'])
+function trashIconColor(color) {
+  return DARK_COLORS.has(color) ? '#FFFFFF' : '#1A1A1A'
+}
 
 function toBase64(file) {
   return new Promise((resolve, reject) => {
@@ -23,6 +28,7 @@ export default function PhotoCard({
   const replaceFileRef = useRef(null)
   const dragOffset = useRef({ x: 0, y: 0 })
   const posRef = useRef(null)
+  const editPanelRef = useRef(null)
 
   const [isDragging, setIsDragging] = useState(false)
   const [posInitialized, setPosInitialized] = useState(false)
@@ -100,6 +106,20 @@ export default function PhotoCard({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isCardEditing])
 
+  useEffect(() => {
+    if (!isCardEditing) return
+    const handleMouseDown = (e) => {
+      if (
+        cardRef.current && !cardRef.current.contains(e.target) &&
+        (!editPanelRef.current || !editPanelRef.current.contains(e.target))
+      ) {
+        handleSaveCardEdit()
+      }
+    }
+    document.addEventListener('mousedown', handleMouseDown)
+    return () => document.removeEventListener('mousedown', handleMouseDown)
+  }, [isCardEditing, editCaption, editColor])
+
   const handleStartCardEdit = () => {
     if (!isPostedMode) return
     setEditCaption(photo.caption || '')
@@ -164,21 +184,23 @@ export default function PhotoCard({
           )}
         </div>
 
-        {isPostedMode && (
-          <div className="card-controls-overlay">
-            {isCardEditing && (
-              <button
-                type="button"
-                className="card-action-btn"
-                onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
-                onClick={handleCardDelete}
-                aria-label="Delete photo"
-                style={{ color: '#888888' }}
-              >
-                <Trash2 size={13} />
-              </button>
-            )}
-          </div>
+        {isPostedMode && isCardEditing && (
+          <button
+            type="button"
+            className="card-action-btn"
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
+            onClick={handleCardDelete}
+            aria-label="Delete photo"
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              right: '10px',
+              zIndex: 25,
+              color: '#FFFFFF',
+            }}
+          >
+            <Trash2 size={13} />
+          </button>
         )}
 
         {isPostedMode ? (
@@ -217,17 +239,6 @@ export default function PhotoCard({
           </div>
         )}
 
-        {isCardEditing && (
-          <button
-            type="button"
-            className="card-edit-confirm-btn"
-            onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
-            onClick={handleSaveCardEdit}
-            aria-label="Save"
-          >
-            <Check size={16} />
-          </button>
-        )}
       </div>
 
       <input
@@ -239,23 +250,6 @@ export default function PhotoCard({
         aria-label="Replace photo"
       />
 
-      {isCardEditing && cardEditRect && (
-        <div
-          className="card-edit-panel"
-          style={{
-            position: 'fixed',
-            left: cardEditRect.left + 'px',
-            top: (cardEditRect.bottom + 8) + 'px',
-            width: cardEditRect.width + 'px',
-            zIndex: 500,
-          }}
-        >
-          <ColorPicker value={editColor} onChange={setEditColor} />
-          <button type="button" className="form-text-action" onClick={handleSaveCardEdit}>
-            save
-          </button>
-        </div>
-      )}
     </>
   )
 }

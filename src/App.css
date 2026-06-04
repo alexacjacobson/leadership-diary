@@ -764,6 +764,10 @@ textarea, input {
   transform: rotate(1.5deg);
 }
 
+.photo-card--editing:hover {
+  transform: none;
+}
+
 .photo-card--horizontal {
   width: 275px;
   height: 247px;
@@ -919,6 +923,10 @@ textarea, input {
 
 .doc-card:hover {
   transform: rotate(1.5deg);
+}
+
+.doc-card--editing:hover {
+  transform: none;
 }
 
 .doc-card__image-area {
