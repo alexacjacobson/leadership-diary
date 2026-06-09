@@ -532,7 +532,7 @@ textarea, input {
 .form-photos-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6);
+  gap: 32px;
   align-items: flex-start;
   margin-top: var(--space-6);
 }
@@ -568,6 +568,32 @@ textarea, input {
 
 .photo-remove-btn:hover {
   background: var(--color-primary);
+}
+
+.card-corner-delete {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1.5px solid #D45FA8;
+  color: #D45FA8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  cursor: pointer;
+  z-index: 30;
+  padding: 0;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.card-corner-delete:hover,
+.card-corner-delete:active {
+  color: #FFB8E7;
+  border-color: #FFB8E7;
 }
 
 .photo-edit-controls {
@@ -633,6 +659,7 @@ textarea, input {
 
 .color-swatch--active {
   transform: scale(1.3);
+  box-shadow: inset 0 0 0 2px #FFB8E7;
 }
 
 /* =====================================================
@@ -868,7 +895,7 @@ textarea, input {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 32px;
   align-items: flex-start;
   margin-bottom: var(--space-6);
 }
@@ -908,6 +935,19 @@ textarea, input {
 
 .photo-card--editing:hover {
   transform: none;
+}
+
+.photo-card--editing,
+.photo-card--parent-editing {
+  outline: 2px solid #FFB8E7;
+  margin-bottom: 32px;
+}
+
+.card-color-picker-overlay {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 10px 14px 12px;
 }
 
 .photo-card--horizontal,
@@ -960,7 +1000,7 @@ textarea, input {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #FF6E48;
+  background: #D45FA8;
   color: #FFFFFF;
   width: 32px;
   height: 32px;
@@ -1384,6 +1424,11 @@ textarea, input {
   transform: rotate(1.5deg);
 }
 
+.link-card--editing {
+  outline: 2px solid #FFB8E7;
+  margin-bottom: 32px;
+}
+
 .link-card__well {
   position: relative;
   background: var(--color-surface);
@@ -1443,7 +1488,7 @@ textarea, input {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #FF6E48;
+  background: #D45FA8;
   color: #FFFFFF;
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-size: 12px;
@@ -1567,6 +1612,19 @@ textarea, input {
   margin-top: 16px;
   padding-top: 12px;
   border-top: 1px solid rgba(136, 136, 136, 0.1);
+}
+
+.form-add-row .form-text-action,
+.form-add-action {
+  color: #D45FA8;
+  transition: color 0.15s ease;
+}
+
+.form-add-row .form-text-action:hover,
+.form-add-row .form-text-action:active,
+.form-add-action:hover,
+.form-add-action:active {
+  color: #FFB8E7;
 }
 
 /* =====================================================

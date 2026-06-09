@@ -1,5 +1,4 @@
 import { useRef } from 'react'
-import { X } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 
 function toBase64(file) {
@@ -38,6 +37,18 @@ export default function LinkCard({ link, onUpdate, onDelete }) {
       className={`link-card${isLight ? ' link-card--light' : ''}${isEditMode ? ' link-card--editing' : ''}`}
       style={{ backgroundColor: link.cardColor || '#FAF8F2' }}
     >
+      {isEditMode && onDelete && (
+        <button
+          type="button"
+          className="card-corner-delete"
+          onClick={e => { e.stopPropagation(); onDelete() }}
+          aria-label="Delete link"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>
+          </svg>
+        </button>
+      )}
       {/* Thumbnail area */}
       <div
         className="link-card__well"
@@ -80,17 +91,12 @@ export default function LinkCard({ link, onUpdate, onDelete }) {
             placeholder="https://..."
             aria-label="Link URL"
           />
-          <div className="link-card__controls">
-            <ColorPicker value={link.cardColor || '#FAF8F2'} onChange={color => onUpdate({ cardColor: color })} />
-            <button
-              type="button"
-              className="link-card__delete-btn"
-              onClick={onDelete}
-              aria-label="Remove link card"
-            >
-              <X size={13} />
-            </button>
-          </div>
+        </div>
+      )}
+
+      {isEditMode && (
+        <div className="card-color-picker-overlay" onClick={e => e.stopPropagation()}>
+          <ColorPicker value={link.cardColor || '#FAF8F2'} onChange={color => onUpdate({ cardColor: color })} />
         </div>
       )}
 

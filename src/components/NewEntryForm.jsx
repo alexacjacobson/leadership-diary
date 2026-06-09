@@ -273,27 +273,42 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
           />
         </div>
 
+        {/* add media / add link — always above cards */}
+        <div className="form-add-row">
+          <button
+            type="button"
+            className="form-text-action"
+            onClick={() => mediaFileRef.current?.click()}
+          >
+            add media
+          </button>
+          <input
+            ref={mediaFileRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.gif,.webp,image/*,.pdf"
+            multiple
+            className="visually-hidden"
+            onChange={handleMediaFiles}
+            aria-label="Upload media"
+          />
+          <button
+            type="button"
+            className="form-text-action"
+            onClick={handleAddLink}
+          >
+            add link
+          </button>
+        </div>
+
         {photos.length > 0 && (
           <div className="form-photos-row">
             {photos.map(photo => (
               <div key={photo.id} className="photo-edit-item">
-                <div className="photo-edit-preview">
-                  <PhotoCard
-                    photo={photo}
-                    onCaptionChange={caption => updatePhoto(photo.id, { caption })}
-                  />
-                  <button
-                    type="button"
-                    className="photo-remove-btn"
-                    onClick={() => removePhoto(photo.id)}
-                    aria-label="Remove photo"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-                <ColorPicker
-                  value={photo.cardColor}
-                  onChange={color => updatePhoto(photo.id, { cardColor: color })}
+                <PhotoCard
+                  photo={photo}
+                  onCaptionChange={caption => updatePhoto(photo.id, { caption })}
+                  onColorChange={color => updatePhoto(photo.id, { cardColor: color })}
+                  onCardDelete={removePhoto}
                 />
               </div>
             ))}
@@ -339,33 +354,6 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
             ))}
           </div>
         )}
-
-        {/* add media / add link — inside the white card */}
-        <div className="form-add-row">
-          <button
-            type="button"
-            className="form-text-action"
-            onClick={() => mediaFileRef.current?.click()}
-          >
-            add media
-          </button>
-          <input
-            ref={mediaFileRef}
-            type="file"
-            accept=".jpg,.jpeg,.png,.gif,.webp,image/*,.pdf"
-            multiple
-            className="visually-hidden"
-            onChange={handleMediaFiles}
-            aria-label="Upload media"
-          />
-          <button
-            type="button"
-            className="form-text-action"
-            onClick={handleAddLink}
-          >
-            add link
-          </button>
-        </div>
       </div>
       </div>
 

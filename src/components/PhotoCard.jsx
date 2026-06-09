@@ -1,12 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Trash2 } from 'lucide-react'
 import ColorPicker from './ColorPicker'
-
-const DARK_COLORS = new Set(['#1A1A1A', '#067A42', '#3B5BDB'])
-function trashIconColor(color) {
-  return DARK_COLORS.has(color) ? '#FFFFFF' : '#1A1A1A'
-}
 
 function toBase64(file) {
   return new Promise((resolve, reject) => {
@@ -22,6 +16,7 @@ export default function PhotoCard({
   module,
   isEditingParent,
   onCaptionChange,
+  onColorChange,
   onCardUpdate,
   onCardDelete,
 }) {
@@ -29,6 +24,7 @@ export default function PhotoCard({
   const replaceFileRef = useRef(null)
   const editPanelRef   = useRef(null)
   const expandTimer    = useRef(null)
+  const clickTimer     = useRef(null)
 
   const [isCardEditing, setIsCardEditing] = useState(false)
   const [editCaption,   setEditCaption]   = useState('')
@@ -58,7 +54,10 @@ export default function PhotoCard({
     return () => document.removeEventListener('keydown', handler)
   }, [isExpanded])
 
-  useEffect(() => () => clearTimeout(expandTimer.current), [])
+  useEffect(() => () => {
+    clearTimeout(expandTimer.current)
+    clearTimeout(clickTimer.current)
+  }, [])
 
   const openExpanded = () => {
     if (!cardRef.current) return
@@ -69,7 +68,6 @@ export default function PhotoCard({
       (window.innerHeight * 0.85) / rect.height,
       4
     )
-    // Translation needed to move the card's center to the viewport center
     const tx = window.innerWidth  / 2 - (rect.left + rect.width  / 2)
     const ty = window.innerHeight / 2 - (rect.top  + rect.height / 2)
     setExpandData({ rect, tx, ty, scale })
@@ -79,6 +77,24 @@ export default function PhotoCard({
   const closeExpanded = () => {
     setIsScaled(false)
     expandTimer.current = setTimeout(() => setExpandData(null), 400)
+  }
+
+  // Single-click: delay to allow double-click to cancel it first
+  const handleCardClick = () => {
+    if (!canExpand || expandData) return
+    if (isPostedMode) {
+      clearTimeout(clickTimer.current)
+      clickTimer.current = setTimeout(openExpanded, 220)
+    } else {
+      openExpanded()
+    }
+  }
+
+  // Double-click: cancel pending single-click, enter card edit
+  const handleCardDblClick = () => {
+    if (!isPostedMode) return
+    clearTimeout(clickTimer.current)
+    handleStartCardEdit()
   }
 
   // Card editing effects
@@ -119,11 +135,6 @@ export default function PhotoCard({
     setCardEditRect(null)
   }
 
-  const handleCardDelete = (e) => {
-    e.stopPropagation()
-    onCardDelete(photo.id)
-  }
-
   const handleReplacePhoto = (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -134,9 +145,11 @@ export default function PhotoCard({
   const activeColor = isCardEditing ? editColor : photo.cardColor
   const isLightCard = activeColor === '#FAF8F2' || activeColor === '#FFFFFF'
 
+  // Show corner delete in parent edit mode and in per-card inline edit mode
+  const showCornerDelete = !!onCardDelete && (isEditingParent || !!onCaptionChange || isCardEditing)
+
   const cardStyle = {
     backgroundColor: activeColor,
-    // Hide in-layout card while expanded clone is visible; preserve layout space
     ...(expandData ? { opacity: 0, pointerEvents: 'none' } : {}),
   }
 
@@ -144,11 +157,24 @@ export default function PhotoCard({
     <>
       <div
         ref={cardRef}
-        className={`photo-card photo-card--${photo.orientation}${isCardEditing ? ' photo-card--editing' : ''}${isLightCard ? ' photo-card--light' : ''}${isEditingParent ? ' photo-card--parent-editing' : ''}`}
+        className={`photo-card photo-card--${photo.orientation}${isCardEditing ? ' photo-card--editing' : ''}${isLightCard ? ' photo-card--light' : ''}${(isEditingParent || !!onCaptionChange) ? ' photo-card--parent-editing' : ''}`}
         style={cardStyle}
-        onClick={canExpand && !expandData ? openExpanded : undefined}
-        onDoubleClick={isPostedMode ? handleStartCardEdit : undefined}
+        onClick={handleCardClick}
+        onDoubleClick={handleCardDblClick}
       >
+        {showCornerDelete && (
+          <button
+            type="button"
+            className="card-corner-delete"
+            onClick={e => { e.stopPropagation(); onCardDelete(photo.id) }}
+            aria-label="Delete photo"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>
+            </svg>
+          </button>
+        )}
+
         <div
           className="photo-card__well"
           onClick={isCardEditing && isPostedMode ? () => replaceFileRef.current?.click() : undefined}
@@ -170,41 +196,20 @@ export default function PhotoCard({
           )}
         </div>
 
-        {isPostedMode && isCardEditing && (
-          <button
-            type="button"
-            className="card-action-btn"
-            onClick={handleCardDelete}
-            aria-label="Delete photo"
-            style={{
-              position: 'absolute',
-              bottom: '10px',
-              right: '10px',
-              zIndex: 25,
-              color: trashIconColor(activeColor),
-            }}
-          >
-            <Trash2 size={13} />
-          </button>
-        )}
-
         {isPostedMode ? (
           <div className="photo-card__caption-area">
             {module && <span className="photo-card__module-line">{module}</span>}
             {isCardEditing ? (
-              <>
-                <ColorPicker value={editColor} onChange={setEditColor} />
-                <textarea
-                  className="photo-card__caption-inline-edit"
-                  value={editCaption}
-                  onChange={e => setEditCaption(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSaveCardEdit() } }}
-                  placeholder="add a caption..."
-                  aria-label="Edit caption"
-                  autoFocus
-                  onClick={e => e.stopPropagation()}
-                />
-              </>
+              <textarea
+                className="photo-card__caption-inline-edit"
+                value={editCaption}
+                onChange={e => setEditCaption(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSaveCardEdit() } }}
+                placeholder="add a caption..."
+                aria-label="Edit caption"
+                autoFocus
+                onClick={e => e.stopPropagation()}
+              />
             ) : (
               photo.caption && <span className="photo-card__caption-line">{photo.caption}</span>
             )}
@@ -223,6 +228,15 @@ export default function PhotoCard({
             {photo.caption && <span className="photo-card__caption-line">{photo.caption}</span>}
           </div>
         )}
+
+        {(isCardEditing || (!!onCaptionChange && !!onColorChange)) && (
+          <div className="card-color-picker-overlay" onClick={e => e.stopPropagation()}>
+            <ColorPicker
+              value={isCardEditing ? editColor : photo.cardColor}
+              onChange={isCardEditing ? setEditColor : onColorChange}
+            />
+          </div>
+        )}
       </div>
 
       <input
@@ -234,16 +248,13 @@ export default function PhotoCard({
         aria-label="Replace photo"
       />
 
-      {/* Expanded card portal — escapes local stacking contexts */}
       {expandData && createPortal(
         <>
-          {/* Backdrop dims the page; click outside to close */}
           <div
             className="photo-expand-backdrop"
             style={{ opacity: isScaled ? 1 : 0 }}
             onClick={closeExpanded}
           />
-          {/* Clone starts at the card's exact position, then translates to viewport center */}
           <div
             className={`photo-card photo-card--${photo.orientation}${isLightCard ? ' photo-card--light' : ''}`}
             style={{

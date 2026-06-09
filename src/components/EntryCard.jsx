@@ -136,6 +136,10 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     setEditPhotos(prev => prev.map(p => (p.id === photoId ? { ...p, ...patch } : p)))
   }
 
+  const removeEditPhoto = (id) => {
+    setEditPhotos(prev => assignOrientations(prev.filter(p => p.id !== id)))
+  }
+
   const handleReplacePhoto = async (photoId, file) => {
     if (!file) return
     const src = await toBase64(file)
@@ -356,24 +360,12 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             aria-label="Add keyword"
           />
 
-          {editLinks.length > 0 && (
-            <div className="form-photos-row" style={{ marginTop: '16px' }}>
-              {editLinks.map(link => (
-                <LinkCard
-                  key={link.id}
-                  link={link}
-                  onUpdate={patch => updateEditLink(link.id, patch)}
-                  onDelete={() => removeEditLink(link.id)}
-                />
-              ))}
-            </div>
-          )}
-
           <div style={{ marginTop: '12px', display: 'flex', gap: '16px', alignItems: 'center' }}>
             <button
               type="button"
+              className="form-add-action"
               onClick={() => mediaAddRef.current?.click()}
-              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', cursor: 'pointer' }}
             >
               + add media
             </button>
@@ -388,12 +380,26 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             />
             <button
               type="button"
+              className="form-add-action"
               onClick={handleAddLink}
-              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', cursor: 'pointer' }}
             >
               + add link
             </button>
           </div>
+
+          {editLinks.length > 0 && (
+            <div className="form-photos-row" style={{ marginTop: '16px' }}>
+              {editLinks.map(link => (
+                <LinkCard
+                  key={link.id}
+                  link={link}
+                  onUpdate={patch => updateEditLink(link.id, patch)}
+                  onDelete={() => removeEditLink(link.id)}
+                />
+              ))}
+            </div>
+          )}
 
           {editPhotos.length > 0 && (
             <div className="edit-photo-section">
@@ -403,6 +409,8 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                     photo={photo}
                     isEditingParent={true}
                     onCaptionChange={caption => updateEditPhoto(photo.id, { caption })}
+                    onColorChange={color => updateEditPhoto(photo.id, { cardColor: color })}
+                    onCardDelete={removeEditPhoto}
                   />
                   <input
                     ref={el => { if (el) replaceRefs.current[photo.id] = el }}
@@ -411,10 +419,6 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                     className="visually-hidden"
                     onChange={e => handleReplacePhoto(photo.id, e.target.files[0])}
                     aria-label="Replace photo"
-                  />
-                  <ColorPicker
-                    value={photo.cardColor}
-                    onChange={color => updateEditPhoto(photo.id, { cardColor: color })}
                   />
                 </div>
               ))}
@@ -425,24 +429,12 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             <div className="form-photos-row" style={{ marginTop: '16px' }}>
               {newEditPhotos.map(photo => (
                 <div key={photo.id} className="photo-edit-item">
-                  <div className="photo-edit-preview">
-                    <PhotoCard
-                      photo={photo}
-                      isEditingParent={true}
-                      onCaptionChange={caption => setNewEditPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, caption } : p))}
-                    />
-                    <button
-                      type="button"
-                      className="photo-remove-btn"
-                      onClick={() => removeNewEditPhoto(photo.id)}
-                      aria-label="Remove photo"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                  <ColorPicker
-                    value={photo.cardColor}
-                    onChange={color => setNewEditPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, cardColor: color } : p))}
+                  <PhotoCard
+                    photo={photo}
+                    isEditingParent={true}
+                    onCaptionChange={caption => setNewEditPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, caption } : p))}
+                    onColorChange={color => setNewEditPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, cardColor: color } : p))}
+                    onCardDelete={removeNewEditPhoto}
                   />
                 </div>
               ))}
