@@ -46,6 +46,17 @@ export default {
         await env.DIARY_KV.put('entries', JSON.stringify(filtered));
         return new Response(JSON.stringify({ success: true }), { headers });
       }
+
+      if (path === '/api/stickers' && request.method === 'GET') {
+        const data = await env.DIARY_KV.get('stickers');
+        return new Response(data || '[]', { headers });
+      }
+
+      if (path === '/api/stickers' && request.method === 'PUT') {
+        const stickers = await request.json();
+        await env.DIARY_KV.put('stickers', JSON.stringify(stickers));
+        return new Response(JSON.stringify(stickers), { headers });
+      }
     }
 
     // Serve static assets for everything else

@@ -51,8 +51,7 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
   const [newGoals, setNewGoals] = useState('')
   const [photos, setPhotos] = useState([])
   const [documents, setDocuments] = useState([])
-  const photoFileRef = useRef(null)
-  const docFileRef = useRef(null)
+  const mediaFileRef = useRef(null)
 
   useEffect(() => {
     if (!showModuleDropdown) return
@@ -73,35 +72,23 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
     photos.length > 0 ||
     documents.length > 0
 
-  const handlePhotoFiles = async (e) => {
+  const handleMediaFiles = async (e) => {
     const files = Array.from(e.target.files)
     if (!files.length) return
-    const incoming = await Promise.all(
-      files.map(async (file) => ({
-        id: uid(),
-        src: await toBase64(file),
-        caption: '',
-        cardColor: '#FFB8E7',
-        orientation: 'vertical',
-      }))
-    )
-    setPhotos(prev => assignOrientations([...prev, ...incoming]))
-    e.target.value = ''
-  }
-
-  const handleDocFiles = async (e) => {
-    const files = Array.from(e.target.files)
-    if (!files.length) return
-    const incoming = await Promise.all(
-      files.map(async (file) => ({
-        id: uid(),
-        src: await toBase64(file),
-        name: file.name.replace(/\.[^.]+$/, ''),
-        fileType: fileExtension(file.name),
-        cardColor: '#3B5BDB',
-      }))
-    )
-    setDocuments(prev => [...prev, ...incoming])
+    const IMAGE_EXTS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp'])
+    const newPhotos = []
+    const newDocs = []
+    for (const file of files) {
+      const ext = fileExtension(file.name)
+      const src = await toBase64(file)
+      if (file.type.startsWith('image/') || IMAGE_EXTS.has(ext)) {
+        newPhotos.push({ id: uid(), src, caption: '', cardColor: '#FAF8F2', orientation: 'vertical' })
+      } else {
+        newDocs.push({ id: uid(), src, name: file.name.replace(/\.[^.]+$/, ''), fileType: ext, cardColor: '#3B5BDB' })
+      }
+    }
+    if (newPhotos.length) setPhotos(prev => assignOrientations([...prev, ...newPhotos]))
+    if (newDocs.length) setDocuments(prev => [...prev, ...newDocs])
     e.target.value = ''
   }
 
@@ -285,34 +272,18 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
         <button
           type="button"
           className="form-text-action"
-          onClick={() => photoFileRef.current?.click()}
+          onClick={() => mediaFileRef.current?.click()}
         >
-          add photo
+          add media
         </button>
         <input
-          ref={photoFileRef}
+          ref={mediaFileRef}
           type="file"
-          accept="image/*"
+          accept=".jpg,.jpeg,.png,.gif,.webp,image/*,.pdf"
           multiple
           className="visually-hidden"
-          onChange={handlePhotoFiles}
-          aria-label="Upload photos"
-        />
-        <button
-          type="button"
-          className="form-text-action"
-          onClick={() => docFileRef.current?.click()}
-        >
-          add document
-        </button>
-        <input
-          ref={docFileRef}
-          type="file"
-          accept=".pdf,.doc,.docx,.ppt,.pptx"
-          multiple
-          className="visually-hidden"
-          onChange={handleDocFiles}
-          aria-label="Upload documents"
+          onChange={handleMediaFiles}
+          aria-label="Upload media"
         />
         <button
           type="button"

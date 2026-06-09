@@ -19,6 +19,7 @@ function toBase64(file) {
 export default function PhotoCard({
   photo,
   module,
+  isEditingParent,
   onCaptionChange,
   onPositionChange,
   onCardUpdate,
@@ -147,8 +148,11 @@ export default function PhotoCard({
     e.target.value = ''
   }
 
+  const activeColor = isCardEditing ? editColor : photo.cardColor
+  const isLightCard = activeColor === '#FAF8F2' || activeColor === '#FFFFFF'
+
   const cardStyle = {
-    backgroundColor: isCardEditing ? editColor : photo.cardColor,
+    backgroundColor: activeColor,
     ...(onPositionChange && posInitialized && posRef.current ? {
       position: 'fixed',
       left: posRef.current.x,
@@ -164,7 +168,7 @@ export default function PhotoCard({
     <>
       <div
         ref={cardRef}
-        className={`photo-card photo-card--${photo.orientation}${onPositionChange ? ' photo-card--draggable' : ''}${isDragging ? ' photo-card--dragging' : ''}${isCardEditing ? ' photo-card--editing' : ''}`}
+        className={`photo-card photo-card--${photo.orientation}${onPositionChange ? ' photo-card--draggable' : ''}${isDragging ? ' photo-card--dragging' : ''}${isCardEditing ? ' photo-card--editing' : ''}${isLightCard ? ' photo-card--light' : ''}${isEditingParent ? ' photo-card--parent-editing' : ''}`}
         style={cardStyle}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -196,7 +200,7 @@ export default function PhotoCard({
               bottom: '10px',
               right: '10px',
               zIndex: 25,
-              color: '#FFFFFF',
+              color: trashIconColor(activeColor),
             }}
           >
             <Trash2 size={13} />

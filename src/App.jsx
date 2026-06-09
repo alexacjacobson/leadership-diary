@@ -1,8 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
+import { X } from 'lucide-react'
 import { getEntries, saveEntry, updateEntry, deleteEntry } from './hooks/useEntries'
+import { getStickers, saveStickers } from './hooks/useStickers'
 import NavHeader from './components/NavHeader'
 import EntryCard from './components/EntryCard'
 import NewEntryForm from './components/NewEntryForm'
+import StickerTray from './components/StickerTray'
+import StickerLayer from './components/StickerLayer'
+import CoverIntro from './components/CoverIntro'
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2)
+}
 
 export default function App() {
   const [entries, setEntries] = useState([])
@@ -12,8 +21,15 @@ export default function App() {
   const [showPinModal, setShowPinModal] = useState(false)
   const [pinValue, setPinValue] = useState('')
 
+  const [showIntro, setShowIntro] = useState(true)
+
+  const [stickers, setStickers] = useState([])
+  const stickersRef = useRef([])
+  useEffect(() => { stickersRef.current = stickers }, [stickers])
+
   useEffect(() => {
     getEntries().then(setEntries)
+    getStickers().then(setStickers)
   }, [])
 
   const handleSave = async (entry) => {
@@ -58,21 +74,53 @@ export default function App() {
     }
   }
 
+  const handlePlaceSticker = (type, x, y) => {
+    const newSticker = { id: uid(), type, x: Math.round(x), y: Math.round(y) }
+    const updated = [...stickers, newSticker]
+    setStickers(updated)
+    saveStickers(updated)
+  }
+
+  const handleMoveSticker = (id, x, y) => {
+    setStickers(prev => prev.map(s => s.id === id ? { ...s, x, y } : s))
+  }
+
+  const handleMoveStickerEnd = () => {
+    saveStickers(stickersRef.current)
+  }
+
+  const handleDeleteSticker = (id) => {
+    const updated = stickers.filter(s => s.id !== id)
+    setStickers(updated)
+    saveStickers(updated)
+  }
+
   return (
     <>
       <NavHeader isUnlocked={isUnlocked} onLockClick={handleLockClick} />
       {isUnlocked && (
-        <button
-          type="button"
-          className="btn-new-entry"
-          style={{ position: 'fixed', top: '70px', right: '24px', zIndex: 100 }}
-          onClick={() => showNewEntryForm ? formRef.current?.save() : setShowNewEntryForm(true)}
-        >
-          {showNewEntryForm ? 'save entry' : 'new entry'}
-        </button>
+        <div style={{ position: 'fixed', top: '70px', right: '24px', zIndex: 100, display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {showNewEntryForm && (
+            <button
+              type="button"
+              className="btn-cancel-entry"
+              onClick={() => setShowNewEntryForm(false)}
+              aria-label="Cancel new entry"
+            >
+              <X size={18} />
+            </button>
+          )}
+          <button
+            type="button"
+            className={showNewEntryForm ? 'btn-save-entry' : 'btn-new-entry'}
+            onClick={() => showNewEntryForm ? formRef.current?.save() : setShowNewEntryForm(true)}
+          >
+            {showNewEntryForm ? 'save entry' : 'new entry'}
+          </button>
+        </div>
       )}
 
-      <div className="app">
+      <div className={`app${isUnlocked ? ' app--edit-mode' : ''}`}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <h1 className="form-title form-title--page">My Leadership Diary</h1>
 
@@ -121,6 +169,15 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <StickerLayer
+        stickers={stickers}
+        onMove={handleMoveSticker}
+        onMoveEnd={handleMoveStickerEnd}
+        onDelete={handleDeleteSticker}
+      />
+      <StickerTray onPlace={handlePlaceSticker} />
+      {showIntro && <CoverIntro onComplete={() => setShowIntro(false)} />}
     </>
   )
 }

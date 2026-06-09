@@ -1,8 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
-import { Trash2, X } from 'lucide-react'
+import { Trash2, X, Check } from 'lucide-react'
 import PhotoCard from './PhotoCard'
 import DocumentCard from './DocumentCard'
 import ColorPicker from './ColorPicker'
+
+const MODULES = [
+  'Module 1 — Introduction',
+  'Module 2 — Self Leadership',
+  'Module 3 — Leading from the Whole',
+  'Module 4 — Leading from the Side',
+  'Module 5 — Leading from the Front',
+  'Module 6 — Wrapping Up',
+]
 
 function formatDate(isoString) {
   return new Date(isoString).toLocaleDateString('en-US', {
@@ -38,6 +47,9 @@ function assignOrientations(photos) {
 
 export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false)
+  const [editModule, setEditModule] = useState(entry.module || MODULES[0])
+  const [showModuleDropdown, setShowModuleDropdown] = useState(false)
+  const moduleDropdownRef = useRef(null)
   const [editReflection, setEditReflection] = useState(entry.reflection || '')
   const [editBiggestChallenges, setEditBiggestChallenges] = useState(entry.biggestChallenges || '')
   const [editKeyLearnings, setEditKeyLearnings] = useState(entry.keyLearnings || '')
@@ -46,8 +58,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   const [newEditPhotos, setNewEditPhotos] = useState([])
   const [editDocuments, setEditDocuments] = useState(entry.documents || [])
   const replaceRefs = useRef({})
-  const photoAddRef = useRef(null)
-  const docAddRef = useRef(null)
+  const mediaAddRef = useRef(null)
 
   useEffect(() => {
     if (!isEditing) return
@@ -58,7 +69,19 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isEditing])
 
+  useEffect(() => {
+    if (!showModuleDropdown) return
+    const handleOutside = (e) => {
+      if (moduleDropdownRef.current && !moduleDropdownRef.current.contains(e.target)) {
+        setShowModuleDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [showModuleDropdown])
+
   const handleStartEdit = () => {
+    setEditModule(entry.module || MODULES[0])
     setEditReflection(entry.reflection || '')
     setEditBiggestChallenges(entry.biggestChallenges || '')
     setEditKeyLearnings(entry.keyLearnings || '')
@@ -71,6 +94,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
 
   const handleSave = () => {
     onUpdate(entry.id, {
+      module: editModule,
       reflection: editReflection.trim(),
       biggestChallenges: editBiggestChallenges.trim(),
       keyLearnings: editKeyLearnings.trim(),
@@ -83,6 +107,8 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   }
 
   const handleCancelEdit = () => {
+    setEditModule(entry.module || MODULES[0])
+    setShowModuleDropdown(false)
     setEditReflection(entry.reflection || '')
     setEditBiggestChallenges(entry.biggestChallenges || '')
     setEditKeyLearnings(entry.keyLearnings || '')
@@ -104,35 +130,23 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     updateEditPhoto(photoId, { src })
   }
 
-  const handleAddPhoto = async (e) => {
+  const handleAddMedia = async (e) => {
     const files = Array.from(e.target.files)
     if (!files.length) return
-    const incoming = await Promise.all(
-      files.map(async (file) => ({
-        id: uid(),
-        src: await toBase64(file),
-        caption: '',
-        cardColor: '#FFB8E7',
-        orientation: 'vertical',
-      }))
-    )
-    setNewEditPhotos(prev => assignOrientations([...prev, ...incoming]))
-    e.target.value = ''
-  }
-
-  const handleAddDoc = async (e) => {
-    const files = Array.from(e.target.files)
-    if (!files.length) return
-    const incoming = await Promise.all(
-      files.map(async (file) => ({
-        id: uid(),
-        src: await toBase64(file),
-        name: file.name.replace(/\.[^.]+$/, ''),
-        fileType: fileExtension(file.name),
-        cardColor: '#3B5BDB',
-      }))
-    )
-    setEditDocuments(prev => [...prev, ...incoming])
+    const IMAGE_EXTS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp'])
+    const newPhotos = []
+    const newDocs = []
+    for (const file of files) {
+      const ext = fileExtension(file.name)
+      const src = await toBase64(file)
+      if (file.type.startsWith('image/') || IMAGE_EXTS.has(ext)) {
+        newPhotos.push({ id: uid(), src, caption: '', cardColor: '#FAF8F2', orientation: 'vertical' })
+      } else {
+        newDocs.push({ id: uid(), src, name: file.name.replace(/\.[^.]+$/, ''), fileType: ext, cardColor: '#3B5BDB' })
+      }
+    }
+    if (newPhotos.length) setNewEditPhotos(prev => assignOrientations([...prev, ...newPhotos]))
+    if (newDocs.length) setEditDocuments(prev => [...prev, ...newDocs])
     e.target.value = ''
   }
 
@@ -193,33 +207,53 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
       className="entry-card"
       style={{
         animationDelay: `${index * 80}ms`,
-        ...(isEditing ? { outline: '2px solid #3B5BDB', borderRadius: '4px' } : {}),
+        ...(isEditing ? { outline: '2px solid #3B5BDB', borderRadius: '4px', padding: 0, background: '#FFFFFF' } : {}),
       }}
     >
       {/* Entry controls */}
-      <div className="entry-meta">
+      <div className="entry-meta" style={isEditing ? { marginBottom: 0 } : undefined}>
         <div className="entry-controls">
-          {isUnlocked && isEditing && (
-            <button
-              className="entry-action-btn"
-              onClick={() => onDelete(entry.id)}
-              aria-label="Delete entry"
-              style={{ color: '#888888' }}
-            >
-              <Trash2 size={15} />
-            </button>
-          )}
         </div>
       </div>
 
       {isEditing ? (
         <div className="entry-reflection-bg" style={{ marginBottom: 0 }}>
-          <span className="entry-week-label" style={{ position: 'absolute', top: '16px', right: '16px', marginBottom: 0 }}>
-            {entry.weekLabel} — {formatDate(entry.createdAt)}
-          </span>
-          {entry.module && (
-            <span className="entry-module-label">{entry.module}</span>
+          {isUnlocked && (
+            <button
+              type="button"
+              onClick={() => onDelete(entry.id)}
+              aria-label="Delete entry"
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#888888', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+            >
+              <Trash2 size={15} />
+            </button>
           )}
+          <div className="module-pill-wrapper" ref={moduleDropdownRef}>
+            <button
+              type="button"
+              className="module-pill-btn"
+              onClick={() => setShowModuleDropdown(v => !v)}
+              aria-label="Select module"
+            >
+              <span className="module-pill-label">{editModule}</span>
+            </button>
+            {showModuleDropdown && (
+              <div className="module-pill-dropdown">
+                <div className="module-pill-items">
+                  {MODULES.map(m => (
+                    <button
+                      key={m}
+                      type="button"
+                      className={`module-pill-item${m === editModule ? ' module-pill-item--active' : ''}`}
+                      onClick={() => { setEditModule(m); setShowModuleDropdown(false) }}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <textarea
             className="entry-edit-textarea"
             value={editReflection}
@@ -260,38 +294,22 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             aria-label="Edit new goals"
           />
 
-          <div style={{ display: 'flex', gap: '24px', marginTop: '12px' }}>
+          <div style={{ marginTop: '12px' }}>
             <button
               type="button"
-              className="form-text-action"
-              onClick={() => photoAddRef.current?.click()}
+              onClick={() => mediaAddRef.current?.click()}
+              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: '#888888', cursor: 'pointer' }}
             >
-              add photo
+              + add media
             </button>
             <input
-              ref={photoAddRef}
+              ref={mediaAddRef}
               type="file"
-              accept="image/*"
+              accept=".jpg,.jpeg,.png,.gif,.webp,image/*,.pdf"
               multiple
               className="visually-hidden"
-              onChange={handleAddPhoto}
-              aria-label="Add photos"
-            />
-            <button
-              type="button"
-              className="form-text-action"
-              onClick={() => docAddRef.current?.click()}
-            >
-              add document
-            </button>
-            <input
-              ref={docAddRef}
-              type="file"
-              accept=".pdf,.doc,.docx,.ppt,.pptx"
-              multiple
-              className="visually-hidden"
-              onChange={handleAddDoc}
-              aria-label="Add documents"
+              onChange={handleAddMedia}
+              aria-label="Add media"
             />
           </div>
 
@@ -301,6 +319,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                 <div key={photo.id} className="edit-photo-item">
                   <PhotoCard
                     photo={photo}
+                    isEditingParent={true}
                     onCaptionChange={caption => updateEditPhoto(photo.id, { caption })}
                   />
                   <input
@@ -327,6 +346,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                   <div className="photo-edit-preview">
                     <PhotoCard
                       photo={photo}
+                      isEditingParent={true}
                       onCaptionChange={caption => setNewEditPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, caption } : p))}
                     />
                     <button
@@ -354,6 +374,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                   <div className="photo-edit-preview">
                     <DocumentCard
                       doc={doc}
+                      isEditingParent={true}
                       onNameChange={name => updateEditDoc(doc.id, { name })}
                     />
                     <button
@@ -374,12 +395,21 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             </div>
           )}
 
-          <div className="entry-edit-actions" style={{ gap: '32px' }}>
-            <button type="button" className="form-text-action" onClick={handleCancelEdit}>
-              cancel entry
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginTop: '16px' }}>
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: '#888888', cursor: 'pointer' }}
+            >
+              cancel edits
             </button>
-            <button type="button" className="form-text-action" onClick={handleSave}>
-              save changes
+            <button
+              type="button"
+              onClick={handleSave}
+              aria-label="Save edits"
+              style={{ background: 'none', border: 'none', padding: 0, color: '#3B5BDB', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            >
+              <Check size={18} />
             </button>
           </div>
         </div>
@@ -430,9 +460,9 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                   key={photo.id}
                   photo={photo}
                   module={entry.module}
-                  onPositionChange={handlePhotoPositionChange}
-                  onCardUpdate={handlePhotoUpdate}
-                  onCardDelete={handlePhotoDelete}
+                  onPositionChange={isUnlocked ? handlePhotoPositionChange : undefined}
+                  onCardUpdate={isUnlocked ? handlePhotoUpdate : undefined}
+                  onCardDelete={isUnlocked ? handlePhotoDelete : undefined}
                 />
               ))}
             </div>
@@ -445,9 +475,9 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                   key={doc.id}
                   doc={doc}
                   module={entry.module}
-                  onPositionChange={handleDocPositionChange}
-                  onCardUpdate={handleDocUpdate}
-                  onCardDelete={handleDocDelete}
+                  onPositionChange={isUnlocked ? handleDocPositionChange : undefined}
+                  onCardUpdate={isUnlocked ? handleDocUpdate : undefined}
+                  onCardDelete={isUnlocked ? handleDocDelete : undefined}
                 />
               ))}
             </div>

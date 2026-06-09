@@ -11,6 +11,7 @@ function trashIconColor(color) {
 export default function DocumentCard({
   doc,
   module,
+  isEditingParent,
   onNameChange,
   onPositionChange,
   onCardUpdate,
@@ -157,7 +158,7 @@ export default function DocumentCard({
     <>
       <div
         ref={cardRef}
-        className={`doc-card${onPositionChange ? ' photo-card--draggable' : ''}${isDragging ? ' photo-card--dragging' : ''}${isCardEditing ? ' doc-card--editing' : ''}`}
+        className={`doc-card${onPositionChange ? ' photo-card--draggable' : ''}${isDragging ? ' photo-card--dragging' : ''}${isCardEditing ? ' doc-card--editing' : ''}${isEditingParent ? ' doc-card--parent-editing' : ''}`}
         style={cardStyle}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}

@@ -1,5 +1,5 @@
 const PALETTE = [
-  { hex: '#FFB8E7', label: 'Petal' },
+  { hex: '#FFFFFF', label: 'White' },
   { hex: '#D45FA8', label: 'Deep Pink' },
   { hex: '#FF6E48', label: 'Marigold' },
   { hex: '#3B5BDB', label: 'Cobalt' },

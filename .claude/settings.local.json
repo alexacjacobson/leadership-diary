@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(npm install *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(cp /Users/alexasmac/dev/diary/Assests/Components/Background-Pink.svg /Users/alexasmac/dev/diary/src/assets/background.svg)",
+      "Bash(awk 'NR>=155&&NR<=165' /Users/alexasmac/dev/diary/src/App.css)",
+      "Bash(awk 'NR>=350&&NR<=358' /Users/alexasmac/dev/diary/src/App.css)",
+      "Bash(awk 'NR>=390&&NR<=398' /Users/alexasmac/dev/diary/src/App.css)",
+      "Bash(awk 'NR>=585&&NR<=600' /Users/alexasmac/dev/diary/src/App.css)",
+      "Bash(awk 'NR>=703&&NR<=712' /Users/alexasmac/dev/diary/src/App.css)"
+    ],
+    "additionalDirectories": [
+      "/Users/alexasmac/dev/diary/Assests/Components"
     ]
   }
 }

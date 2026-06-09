@@ -18,8 +18,8 @@ export default function NavHeader({ isUnlocked, onLockClick }) {
             aria-label={isUnlocked ? 'Lock' : 'Unlock'}
           >
             {isUnlocked
-              ? <Unlock size={16} color="#D45FA8" />
-              : <Lock size={16} color="#888888" />
+              ? <Unlock size={16} color="#3B5BDB" />
+              : <Lock size={16} color="#3B5BDB" />
             }
           </button>
         </div>
