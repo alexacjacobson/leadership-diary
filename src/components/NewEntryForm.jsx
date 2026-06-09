@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 import PhotoCard from './PhotoCard'
 import DocumentCard from './DocumentCard'
+import LinkCard from './LinkCard'
 
 const MODULES = [
   'Module 1 — Introduction',
@@ -53,6 +54,7 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
   const [keywordInput, setKeywordInput] = useState('')
   const [photos, setPhotos] = useState([])
   const [documents, setDocuments] = useState([])
+  const [links, setLinks] = useState([])
   const mediaFileRef = useRef(null)
 
   useEffect(() => {
@@ -72,7 +74,8 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
     keyLearnings.trim().length > 0 ||
     newGoals.trim().length > 0 ||
     photos.length > 0 ||
-    documents.length > 0
+    documents.length > 0 ||
+    links.length > 0
 
   const handleMediaFiles = async (e) => {
     const files = Array.from(e.target.files)
@@ -110,6 +113,18 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
     setDocuments(prev => prev.filter(d => d.id !== id))
   }
 
+  const handleAddLink = () => {
+    setLinks(prev => [...prev, { id: uid(), src: '', url: '', caption: '', cardColor: '#FAF8F2' }])
+  }
+
+  const updateLink = (id, patch) => {
+    setLinks(prev => prev.map(l => l.id === id ? { ...l, ...patch } : l))
+  }
+
+  const removeLink = (id) => {
+    setLinks(prev => prev.filter(l => l.id !== id))
+  }
+
   const handlePost = () => {
     if (!canPost) return
     onSave({
@@ -124,6 +139,7 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
       keywords,
       photos,
       documents,
+      links,
     })
     setModule(MODULES[0])
     setReflection('')
@@ -134,6 +150,7 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
     setKeywordInput('')
     setPhotos([])
     setDocuments([])
+    setLinks([])
   }
 
   const handleKeyDown = (e) => {
@@ -309,26 +326,50 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
             ))}
           </div>
         )}
+
+        {links.length > 0 && (
+          <div className="form-photos-row">
+            {links.map(link => (
+              <LinkCard
+                key={link.id}
+                link={link}
+                onUpdate={patch => updateLink(link.id, patch)}
+                onDelete={() => removeLink(link.id)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* add media / add link — inside the white card */}
+        <div className="form-add-row">
+          <button
+            type="button"
+            className="form-text-action"
+            onClick={() => mediaFileRef.current?.click()}
+          >
+            add media
+          </button>
+          <input
+            ref={mediaFileRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.gif,.webp,image/*,.pdf"
+            multiple
+            className="visually-hidden"
+            onChange={handleMediaFiles}
+            aria-label="Upload media"
+          />
+          <button
+            type="button"
+            className="form-text-action"
+            onClick={handleAddLink}
+          >
+            add link
+          </button>
+        </div>
       </div>
       </div>
 
       <div className="form-actions">
-        <button
-          type="button"
-          className="form-text-action"
-          onClick={() => mediaFileRef.current?.click()}
-        >
-          add media
-        </button>
-        <input
-          ref={mediaFileRef}
-          type="file"
-          accept=".jpg,.jpeg,.png,.gif,.webp,image/*,.pdf"
-          multiple
-          className="visually-hidden"
-          onChange={handleMediaFiles}
-          aria-label="Upload media"
-        />
         <button
           type="button"
           className="form-text-action"

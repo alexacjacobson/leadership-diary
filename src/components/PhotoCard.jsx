@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Trash2 } from 'lucide-react'
 import ColorPicker from './ColorPicker'
 
@@ -21,108 +22,90 @@ export default function PhotoCard({
   module,
   isEditingParent,
   onCaptionChange,
-  onPositionChange,
   onCardUpdate,
   onCardDelete,
 }) {
-  const cardRef = useRef(null)
+  const cardRef        = useRef(null)
   const replaceFileRef = useRef(null)
-  const dragOffset = useRef({ x: 0, y: 0 })
-  const posRef = useRef(null)
-  const editPanelRef = useRef(null)
+  const editPanelRef   = useRef(null)
+  const expandTimer    = useRef(null)
 
-  const [isDragging, setIsDragging] = useState(false)
-  const [posInitialized, setPosInitialized] = useState(false)
   const [isCardEditing, setIsCardEditing] = useState(false)
-  const [editCaption, setEditCaption] = useState('')
-  const [editColor, setEditColor] = useState('')
-  const [cardEditRect, setCardEditRect] = useState(null)
+  const [editCaption,   setEditCaption]   = useState('')
+  const [editColor,     setEditColor]     = useState('')
+  const [cardEditRect,  setCardEditRect]  = useState(null)
+
+  // expandData: null = closed, { rect, tx, ty, scale } = open
+  const [expandData, setExpandData] = useState(null)
+  const [isScaled,   setIsScaled]   = useState(false)
 
   const isPostedMode = !!onCardUpdate
+  const isExpanded   = expandData !== null
+  const canExpand    = !isEditingParent && !onCaptionChange && !isCardEditing
 
+  // Trigger the translate+scale transition one frame after the clone mounts
   useEffect(() => {
-    if (!onPositionChange) return
-    const raw = localStorage.getItem(`card-pos-${photo.id}`)
-    if (raw) {
-      posRef.current = JSON.parse(raw)
-      setPosInitialized(true)
-    } else if (photo.x !== undefined && photo.y !== undefined) {
-      posRef.current = { x: photo.x, y: photo.y }
-      setPosInitialized(true)
-    }
-    // No position saved — card stays in normal document flow
-  }, [])
+    if (!isExpanded) return
+    const id = requestAnimationFrame(() => setIsScaled(true))
+    return () => cancelAnimationFrame(id)
+  }, [isExpanded])
 
-  const onPointerDown = (e) => {
-    if (!onPositionChange) return
-    if (e.target.closest('textarea, button')) return
-    if (isCardEditing) return
-    if (e.detail > 1) return
-    e.preventDefault()
-    e.currentTarget.setPointerCapture(e.pointerId)
-    if (!posRef.current && cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect()
-      posRef.current = { x: rect.left, y: rect.top }
-      cardRef.current.style.position = 'fixed'
-      cardRef.current.style.left = rect.left + 'px'
-      cardRef.current.style.top = rect.top + 'px'
-      setPosInitialized(true)
-    }
-    dragOffset.current = {
-      x: e.clientX - (posRef.current?.x ?? 0),
-      y: e.clientY - (posRef.current?.y ?? 0),
-    }
-    setIsDragging(true)
+  // Esc to close expanded view
+  useEffect(() => {
+    if (!isExpanded) return
+    const handler = (e) => { if (e.key === 'Escape') closeExpanded() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [isExpanded])
+
+  useEffect(() => () => clearTimeout(expandTimer.current), [])
+
+  const openExpanded = () => {
+    if (!cardRef.current) return
+    clearTimeout(expandTimer.current)
+    const rect  = cardRef.current.getBoundingClientRect()
+    const scale = Math.min(
+      (window.innerWidth  * 0.85) / rect.width,
+      (window.innerHeight * 0.85) / rect.height,
+      4
+    )
+    // Translation needed to move the card's center to the viewport center
+    const tx = window.innerWidth  / 2 - (rect.left + rect.width  / 2)
+    const ty = window.innerHeight / 2 - (rect.top  + rect.height / 2)
+    setExpandData({ rect, tx, ty, scale })
+    setIsScaled(false)
   }
 
-  const onPointerMove = (e) => {
-    if (!isDragging) return
-    const x = e.clientX - dragOffset.current.x
-    const y = e.clientY - dragOffset.current.y
-    posRef.current = { x, y }
-    if (cardRef.current) {
-      cardRef.current.style.left = x + 'px'
-      cardRef.current.style.top = y + 'px'
-    }
+  const closeExpanded = () => {
+    setIsScaled(false)
+    expandTimer.current = setTimeout(() => setExpandData(null), 400)
   }
 
-  const onPointerUp = (e) => {
-    if (!isDragging) return
-    const finalPos = {
-      x: e.clientX - dragOffset.current.x,
-      y: e.clientY - dragOffset.current.y,
-    }
-    posRef.current = finalPos
-    localStorage.setItem(`card-pos-${photo.id}`, JSON.stringify(finalPos))
-    if (onPositionChange) onPositionChange(photo.id, finalPos.x, finalPos.y)
-    setIsDragging(false)
-  }
-
+  // Card editing effects
   useEffect(() => {
     if (!isCardEditing) return
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') setIsCardEditing(false)
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    const handler = (e) => { if (e.key === 'Escape') setIsCardEditing(false) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
   }, [isCardEditing])
 
   useEffect(() => {
     if (!isCardEditing) return
-    const handleMouseDown = (e) => {
+    const handler = (e) => {
       if (
         cardRef.current && !cardRef.current.contains(e.target) &&
         (!editPanelRef.current || !editPanelRef.current.contains(e.target))
-      ) {
-        handleSaveCardEdit()
-      }
+      ) handleSaveCardEdit()
     }
-    document.addEventListener('mousedown', handleMouseDown)
-    return () => document.removeEventListener('mousedown', handleMouseDown)
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
   }, [isCardEditing, editCaption, editColor])
 
   const handleStartCardEdit = () => {
     if (!isPostedMode) return
+    clearTimeout(expandTimer.current)
+    setExpandData(null)
+    setIsScaled(false)
     setEditCaption(photo.caption || '')
     setEditColor(photo.cardColor)
     const rect = cardRef.current.getBoundingClientRect()
@@ -153,26 +136,17 @@ export default function PhotoCard({
 
   const cardStyle = {
     backgroundColor: activeColor,
-    ...(onPositionChange && posInitialized && posRef.current ? {
-      position: 'fixed',
-      left: posRef.current.x,
-      top: posRef.current.y,
-      cursor: isDragging ? 'grabbing' : 'grab',
-      userSelect: 'none',
-      touchAction: 'none',
-      zIndex: isDragging ? 1000 : (isCardEditing ? 500 : 1),
-    } : {}),
+    // Hide in-layout card while expanded clone is visible; preserve layout space
+    ...(expandData ? { opacity: 0, pointerEvents: 'none' } : {}),
   }
 
   return (
     <>
       <div
         ref={cardRef}
-        className={`photo-card photo-card--${photo.orientation}${onPositionChange ? ' photo-card--draggable' : ''}${isDragging ? ' photo-card--dragging' : ''}${isCardEditing ? ' photo-card--editing' : ''}${isLightCard ? ' photo-card--light' : ''}${isEditingParent ? ' photo-card--parent-editing' : ''}`}
+        className={`photo-card photo-card--${photo.orientation}${isCardEditing ? ' photo-card--editing' : ''}${isLightCard ? ' photo-card--light' : ''}${isEditingParent ? ' photo-card--parent-editing' : ''}`}
         style={cardStyle}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
+        onClick={canExpand && !expandData ? openExpanded : undefined}
         onDoubleClick={isPostedMode ? handleStartCardEdit : undefined}
       >
         <div
@@ -186,13 +160,20 @@ export default function PhotoCard({
               <span>click to replace</span>
             </div>
           )}
+          {canExpand && (
+            <div className="photo-card__zoom-badge">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+          )}
         </div>
 
         {isPostedMode && isCardEditing && (
           <button
             type="button"
             className="card-action-btn"
-            onPointerDown={e => { e.stopPropagation(); e.preventDefault() }}
             onClick={handleCardDelete}
             aria-label="Delete photo"
             style={{
@@ -242,7 +223,6 @@ export default function PhotoCard({
             {photo.caption && <span className="photo-card__caption-line">{photo.caption}</span>}
           </div>
         )}
-
       </div>
 
       <input
@@ -254,6 +234,52 @@ export default function PhotoCard({
         aria-label="Replace photo"
       />
 
+      {/* Expanded card portal — escapes local stacking contexts */}
+      {expandData && createPortal(
+        <>
+          {/* Backdrop dims the page; click outside to close */}
+          <div
+            className="photo-expand-backdrop"
+            style={{ opacity: isScaled ? 1 : 0 }}
+            onClick={closeExpanded}
+          />
+          {/* Clone starts at the card's exact position, then translates to viewport center */}
+          <div
+            className={`photo-card photo-card--${photo.orientation}${isLightCard ? ' photo-card--light' : ''}`}
+            style={{
+              position:        'fixed',
+              left:            expandData.rect.left,
+              top:             expandData.rect.top,
+              width:           expandData.rect.width,
+              backgroundColor: photo.cardColor,
+              zIndex:          9500,
+              cursor:          'pointer',
+              transform:       isScaled
+                ? `translate(${expandData.tx}px, ${expandData.ty}px) scale(${expandData.scale})`
+                : 'translate(0, 0) scale(1)',
+              transformOrigin: 'center center',
+              transition:      'transform 0.4s cubic-bezier(0.34, 1.1, 0.64, 1)',
+              pointerEvents:   'auto',
+            }}
+            onClick={closeExpanded}
+          >
+            <div className="photo-card__well">
+              <img
+                src={photo.src}
+                alt={photo.caption || 'Entry photo'}
+                onClick={e => e.stopPropagation()}
+              />
+            </div>
+            {photo.caption && (
+              <div className="photo-card__caption-area" onClick={e => e.stopPropagation()}>
+                {module && <span className="photo-card__module-line">{module}</span>}
+                <span className="photo-card__caption-line">{photo.caption}</span>
+              </div>
+            )}
+          </div>
+        </>,
+        document.body
+      )}
     </>
   )
 }

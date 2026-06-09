@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Trash2, X, Check } from 'lucide-react'
 import PhotoCard from './PhotoCard'
 import DocumentCard from './DocumentCard'
+import LinkCard from './LinkCard'
 import ColorPicker from './ColorPicker'
 
 const MODULES = [
@@ -56,6 +57,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   const [editNewGoals, setEditNewGoals] = useState(entry.newGoals || '')
   const [editKeywords, setEditKeywords] = useState(entry.keywords || [])
   const [editKeywordInput, setEditKeywordInput] = useState('')
+  const [editLinks, setEditLinks] = useState(entry.links || [])
   const [editPhotos, setEditPhotos] = useState(entry.photos || [])
   const [newEditPhotos, setNewEditPhotos] = useState([])
   const [editDocuments, setEditDocuments] = useState(entry.documents || [])
@@ -90,6 +92,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     setEditNewGoals(entry.newGoals || '')
     setEditKeywords(entry.keywords ? [...entry.keywords] : [])
     setEditKeywordInput('')
+    setEditLinks(entry.links ? [...entry.links] : [])
     setEditPhotos(entry.photos ? [...entry.photos] : [])
     setNewEditPhotos([])
     setEditDocuments(entry.documents ? [...entry.documents] : [])
@@ -104,6 +107,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
       keyLearnings: editKeyLearnings.trim(),
       newGoals: editNewGoals.trim(),
       keywords: editKeywords,
+      links: editLinks,
       photos: [...editPhotos, ...newEditPhotos],
       documents: editDocuments,
     })
@@ -120,6 +124,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     setEditNewGoals(entry.newGoals || '')
     setEditKeywords(entry.keywords ? [...entry.keywords] : [])
     setEditKeywordInput('')
+    setEditLinks(entry.links ? [...entry.links] : [])
     setEditPhotos(entry.photos ? [...entry.photos] : [])
     setNewEditPhotos([])
     setEditDocuments(entry.documents ? [...entry.documents] : [])
@@ -167,6 +172,18 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
 
   const removeEditDoc = (id) => {
     setEditDocuments(prev => prev.filter(d => d.id !== id))
+  }
+
+  const handleAddLink = () => {
+    setEditLinks(prev => [...prev, { id: uid(), src: '', url: '', caption: '', cardColor: '#FAF8F2' }])
+  }
+
+  const updateEditLink = (id, patch) => {
+    setEditLinks(prev => prev.map(l => l.id === id ? { ...l, ...patch } : l))
+  }
+
+  const removeEditLink = (id) => {
+    setEditLinks(prev => prev.filter(l => l.id !== id))
   }
 
   const handlePhotoPositionChange = (photoId, x, y) => {
@@ -339,7 +356,20 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             aria-label="Add keyword"
           />
 
-          <div style={{ marginTop: '12px' }}>
+          {editLinks.length > 0 && (
+            <div className="form-photos-row" style={{ marginTop: '16px' }}>
+              {editLinks.map(link => (
+                <LinkCard
+                  key={link.id}
+                  link={link}
+                  onUpdate={patch => updateEditLink(link.id, patch)}
+                  onDelete={() => removeEditLink(link.id)}
+                />
+              ))}
+            </div>
+          )}
+
+          <div style={{ marginTop: '12px', display: 'flex', gap: '16px', alignItems: 'center' }}>
             <button
               type="button"
               onClick={() => mediaAddRef.current?.click()}
@@ -356,6 +386,13 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
               onChange={handleAddMedia}
               aria-label="Add media"
             />
+            <button
+              type="button"
+              onClick={handleAddLink}
+              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer' }}
+            >
+              + add link
+            </button>
           </div>
 
           {editPhotos.length > 0 && (
@@ -502,7 +539,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             </div>
           )}
 
-          {(entry.photos || []).length > 0 && (
+          {((entry.photos || []).length > 0 || (entry.documents || []).length > 0 || (entry.links || []).length > 0) && (
             <div className="entry-photos">
               {(entry.photos || []).map(photo => (
                 <PhotoCard
@@ -514,11 +551,6 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                   onCardDelete={isUnlocked ? handlePhotoDelete : undefined}
                 />
               ))}
-            </div>
-          )}
-
-          {(entry.documents || []).length > 0 && (
-            <div className="entry-photos">
               {(entry.documents || []).map(doc => (
                 <DocumentCard
                   key={doc.id}
@@ -528,6 +560,9 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                   onCardUpdate={isUnlocked ? handleDocUpdate : undefined}
                   onCardDelete={isUnlocked ? handleDocDelete : undefined}
                 />
+              ))}
+              {(entry.links || []).map(link => (
+                <LinkCard key={link.id} link={link} />
               ))}
             </div>
           )}

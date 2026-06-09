@@ -486,7 +486,7 @@ textarea, input {
   overflow-y: auto;
   padding: 0;
   margin-bottom: 16px;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.75;
   color: var(--color-ink);
@@ -694,6 +694,7 @@ textarea, input {
   flex-direction: column;
   gap: var(--space-12);
   margin-top: 55px;
+  padding-bottom: 100px;
 }
 
 @keyframes fadeUp {
@@ -865,8 +866,10 @@ textarea, input {
    ===================================================== */
 .edit-photo-section {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
   margin-bottom: var(--space-6);
 }
 
@@ -894,6 +897,9 @@ textarea, input {
   border-radius: 4px;
   flex-shrink: 0;
   transition: transform 0.3s cubic-bezier(0.34, 1.3, 0.64, 1);
+  display: inline-flex;
+  flex-direction: column;
+  max-width: 220px;
 }
 
 .photo-card:hover {
@@ -904,41 +910,26 @@ textarea, input {
   transform: none;
 }
 
-.photo-card--horizontal {
-  width: 275px;
-  height: 247px;
-}
-
+.photo-card--horizontal,
 .photo-card--vertical {
-  width: 176px;
-  height: 257px;
+  width: auto;
+  height: auto;
 }
 
 .photo-card__well {
-  position: absolute;
+  position: relative;
   background: var(--color-surface);
   border-radius: 4px;
   overflow: hidden;
-}
-
-.photo-card--horizontal .photo-card__well {
-  left: 14px;
-  top: 16px;
-  width: 247px;
-  height: 167px;
-}
-
-.photo-card--vertical .photo-card__well {
-  left: 13px;
-  top: 16px;
-  width: 149px;
-  height: 167px;
+  margin: 14px 14px 0;
 }
 
 .photo-card__well img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  max-height: 260px;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .photo-card__well-overlay {
@@ -964,6 +955,36 @@ textarea, input {
   letter-spacing: 0.05em;
 }
 
+.photo-card__zoom-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #FF6E48;
+  color: #FFFFFF;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.photo-card__well:hover .photo-card__zoom-badge {
+  opacity: 1;
+}
+
+.photo-expand-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9400;
+  transition: opacity 0.35s ease;
+}
+
 /* Read-mode caption */
 .photo-card__caption {
   position: absolute;
@@ -977,12 +998,9 @@ textarea, input {
   color: white;
 }
 
-/* Editable caption overlay — transparent textarea on bottom of card */
+/* Caption textarea — in flow below the image */
 .photo-card__caption-edit {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   background: transparent;
   border: none;
   outline: none;
@@ -991,22 +1009,15 @@ textarea, input {
   font-size: 11px;
   line-height: 1.55;
   color: white;
-  padding: 12px 22px 18px;
+  padding: 10px 14px 16px;
   cursor: text;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .photo-card__caption-edit::placeholder {
   color: rgba(255, 255, 255, 0.45);
   font-style: italic;
-}
-
-.photo-card--horizontal .photo-card__caption-edit {
-  height: 63px;
-}
-
-.photo-card--vertical .photo-card__caption-edit {
-  height: 74px;
 }
 
 /* =====================================================
@@ -1144,26 +1155,11 @@ textarea, input {
    PHOTO/DOC CARD — CAPTION AREA (2-line module + caption)
    ===================================================== */
 .photo-card__caption-area {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px 22px 16px;
+  position: relative;
+  padding: 10px 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-
-.photo-card--horizontal .photo-card__caption-area {
-  height: 63px;
-}
-
-.photo-card--vertical .photo-card__caption-area {
-  height: 74px;
-}
-
-.photo-card--editing .photo-card__caption-area {
-  height: auto;
 }
 
 .photo-card__module-line {
@@ -1308,6 +1304,269 @@ textarea, input {
 /* Disable hover tilt entirely when app is in edit mode (unlocked) */
 .app--edit-mode .doc-card:hover {
   transform: none;
+}
+
+/* =====================================================
+   PHOTO LIGHTBOX
+   ===================================================== */
+.photo-lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 9500;
+  animation: lightbox-fade-in 0.25s ease both;
+}
+
+.photo-lightbox-backdrop--out {
+  animation: lightbox-fade-out 0.28s ease both;
+}
+
+.photo-lightbox-content {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9501;
+  cursor: pointer;
+  animation: lightbox-zoom-in 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+.photo-lightbox-content--out {
+  animation: lightbox-zoom-out 0.28s ease both;
+}
+
+.photo-lightbox-content img {
+  max-width: min(88vw, 800px);
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+
+@keyframes lightbox-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes lightbox-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes lightbox-zoom-in {
+  from { transform: scale(0.65); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes lightbox-zoom-out {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(0.65); opacity: 0; }
+}
+
+/* =====================================================
+   LINK CARD
+   ===================================================== */
+.link-card {
+  position: relative;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: column;
+  max-width: 300px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+.link-card:not(.link-card--editing):hover {
+  transform: rotate(1.5deg);
+}
+
+.link-card__well {
+  position: relative;
+  background: var(--color-surface);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 14px 14px 0;
+}
+
+.link-card__well img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.link-card__placeholder {
+  width: 200px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+}
+
+.link-card--light .link-card__placeholder {
+  color: rgba(26, 26, 26, 0.4);
+}
+
+.link-card__well-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.link-card__well:hover .link-card__well-overlay {
+  opacity: 1;
+}
+
+.link-card__well-overlay span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: white;
+  letter-spacing: 0.05em;
+}
+
+/* "Open ↗" badge on hover in read mode */
+.link-card__open-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #FF6E48;
+  color: #FFFFFF;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  white-space: nowrap;
+}
+
+.link-card__well:hover .link-card__open-badge {
+  opacity: 1;
+}
+
+.link-card__edit-area {
+  padding: 10px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.link-card__caption-edit {
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.55;
+  color: white;
+  padding: 0;
+  cursor: text;
+  width: 100%;
+  min-height: 28px;
+}
+
+.link-card--light .link-card__caption-edit { color: #1A1A1A; }
+
+.link-card__caption-edit::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+}
+
+.link-card--light .link-card__caption-edit::placeholder {
+  color: rgba(26, 26, 26, 0.45);
+}
+
+.link-card__url-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: white;
+  padding: 2px 0;
+  width: 100%;
+}
+
+.link-card--light .link-card__url-input {
+  border-bottom-color: rgba(26, 26, 26, 0.25);
+  color: #1A1A1A;
+}
+
+.link-card__url-input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+}
+
+.link-card--light .link-card__url-input::placeholder {
+  color: rgba(26, 26, 26, 0.45);
+}
+
+.link-card__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.link-card__delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.link-card--light .link-card__delete-btn { color: rgba(26, 26, 26, 0.5); }
+.link-card__delete-btn:hover { color: white; }
+.link-card--light .link-card__delete-btn:hover { color: #1A1A1A; }
+
+.link-card__caption-area {
+  position: relative;
+  padding: 10px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.link-card__caption-line {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  color: white;
+  display: block;
+}
+
+.link-card--light .link-card__caption-line { color: #1A1A1A; }
+
+/* add media / add link row inside white box */
+.form-add-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(136, 136, 136, 0.1);
 }
 
 /* =====================================================
