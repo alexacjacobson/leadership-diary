@@ -1,25 +1,57 @@
 import { useState, useRef, useEffect } from 'react'
 import { Trash2 } from 'lucide-react'
 import { getStickers, saveStickers } from '../hooks/useStickers'
-import starSrc     from '../../Assests/Components/star-sticker.svg'
-import hearteyeSrc from '../../Assests/Components/Hearteye-sticker.svg'
+import starRaw     from '../../Assests/Components/star-sticker.svg?raw'
+import hearteyeRaw from '../../Assests/Components/Hearteye-sticker.svg?raw'
 import heartSrc    from '../../Assests/Components/heart-sticker.svg'
 import checkSrc    from '../../Assests/Components/check-sticker.svg'
+import sunSrc      from '../../Assests/Components/sun.svg'
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
 
+// Replace hardcoded cobalt/linen fills with CSS variable references so
+// these stickers flip correctly in dark mode.
+function themedSvg(raw, w, h) {
+  return raw
+    .replace(/fill="#3B5BDB"/g, 'style="fill:var(--color-cobalt)"')
+    .replace(/fill="#FAF8F2"/g, 'style="fill:var(--color-base)"')
+    .replace(/(<svg[^>]+)width="[^"]*"/, `$1width="${w}"`)
+    .replace(/(<svg[^>]+)height="[^"]*"/, `$1height="${h}"`)
+}
+
 // column-reverse means first entry renders at the bottom of the tray
 const TRAY = [
-  { type: 'star',     src: starSrc,     w: 108, h: 106 },
-  { type: 'hearteye', src: hearteyeSrc, w: 120, h: 120 },
+  { type: 'star',     raw: starRaw,     w: 108, h: 106 },
+  { type: 'sun',      src: sunSrc,      w: 110, h: 110 },
+  { type: 'hearteye', raw: hearteyeRaw, w: 120, h: 120 },
   { type: 'heart',    src: heartSrc,    w: 92,  h: 101 },
   { type: 'check',    src: checkSrc,    w: 96,  h: 122 },
 ]
 
-const SRCS  = Object.fromEntries(TRAY.map(t => [t.type, t.src]))
+const SRCS  = Object.fromEntries(TRAY.filter(t => t.src).map(t => [t.type, t.src]))
+const RAWS  = Object.fromEntries(TRAY.filter(t => t.raw).map(t => [t.type, t.raw]))
 const SIZES = Object.fromEntries(TRAY.map(t => [t.type, { w: t.w, h: t.h }]))
+
+function StickerImage({ type, w, h }) {
+  if (RAWS[type]) {
+    return (
+      <span
+        style={{ display: 'block', width: w, height: h, flexShrink: 0 }}
+        dangerouslySetInnerHTML={{ __html: themedSvg(RAWS[type], w, h) }}
+      />
+    )
+  }
+  return (
+    <img
+      src={SRCS[type]}
+      alt={type}
+      draggable={false}
+      style={{ width: w, height: h, display: 'block' }}
+    />
+  )
+}
 
 export default function Stickers() {
   const [placedStickers, setPlacedStickers] = useState([])
@@ -44,9 +76,7 @@ export default function Stickers() {
     const ox = item.w / 2
     const oy = item.h / 2
 
-    const ghost = document.createElement('img')
-    ghost.src = item.src
-    ghost.draggable = false
+    const ghost = document.createElement('div')
     Object.assign(ghost.style, {
       position:      'fixed',
       width:         item.w + 'px',
@@ -57,6 +87,15 @@ export default function Stickers() {
       zIndex:        '99998',
       opacity:       '0.85',
     })
+    if (item.raw) {
+      ghost.innerHTML = themedSvg(item.raw, item.w, item.h)
+    } else {
+      const img = document.createElement('img')
+      img.src = item.src
+      img.draggable = false
+      Object.assign(img.style, { width: item.w + 'px', height: item.h + 'px', display: 'block' })
+      ghost.appendChild(img)
+    }
     document.body.appendChild(ghost)
 
     const onMove = (ev) => {
@@ -152,12 +191,7 @@ export default function Stickers() {
               onPointerMove={e => handleStickerMove(sticker, e)}
               onPointerUp={()  => handleStickerUp(sticker)}
             >
-              <img
-                src={SRCS[sticker.type]}
-                alt={sticker.type}
-                draggable={false}
-                style={{ width: w, height: h, display: 'block' }}
-              />
+              <StickerImage type={sticker.type} w={w} h={h} />
             </div>
           )
         })}
@@ -183,7 +217,13 @@ export default function Stickers() {
             onPointerDown={e => handleTrayPointerDown(item, e)}
             aria-label={`Drag ${item.type} sticker`}
           >
-            <img src={item.src} alt={item.type} draggable={false} />
+            {item.raw
+              ? <span
+                  style={{ display: 'block', width: 40, height: 40 }}
+                  dangerouslySetInnerHTML={{ __html: themedSvg(item.raw, 40, 40) }}
+                />
+              : <img src={item.src} alt={item.type} draggable={false} />
+            }
           </button>
         ))}
       </div>

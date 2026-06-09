@@ -42,8 +42,8 @@ const ICONS = [
 ]
 
 export default function CoverIntro({ onComplete }) {
-  const [slideUp, setSlideUp] = useState(false)
-  const [scale,   setScale]   = useState(() => getScale())
+  const [fadingOut, setFadingOut] = useState(false)
+  const [scale,     setScale]    = useState(() => getScale())
 
   // Recompute scale on viewport resize
   useEffect(() => {
@@ -53,15 +53,15 @@ export default function CoverIntro({ onComplete }) {
   }, [])
 
   useEffect(() => {
-    // All icons appear simultaneously: 550ms animation + 500ms pause = 1050ms before slide-up.
-    // Slide-up takes 1000ms → unmount at 2050ms.
-    const tSlide = setTimeout(() => setSlideUp(true), 1050)
-    const tDone  = setTimeout(onComplete, 2050)
-    return () => { clearTimeout(tSlide); clearTimeout(tDone) }
+    // All icons appear simultaneously: 550ms animation + 500ms pause = 1050ms before fade-out.
+    // Fade-out takes 800ms → unmount at 1850ms.
+    const tFade = setTimeout(() => setFadingOut(true), 1050)
+    const tDone = setTimeout(onComplete, 1850)
+    return () => { clearTimeout(tFade); clearTimeout(tDone) }
   }, [onComplete])
 
   return (
-    <div className={`cover-intro${slideUp ? ' cover-intro--slide-up' : ''}`}>
+    <div className={`cover-intro${fadingOut ? ' cover-intro--fade-out' : ''}`}>
       <div
         style={{
           position: 'absolute',

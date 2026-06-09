@@ -6,9 +6,20 @@ import EntryCard from './components/EntryCard'
 import NewEntryForm from './components/NewEntryForm'
 import Stickers from './components/Stickers'
 import CoverIntro from './components/CoverIntro'
+import lockClosedSrc from '../Assests/Components/lock-closed.svg'
+import lockOpenSrc   from '../Assests/Components/lock-open.svg'
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
+}
+
+function PinLock({ isOpen, isJiggling }) {
+  return (
+    <div className={`pin-lock-wrap${isJiggling ? ' pin-lock-jiggle' : ''}`}>
+      <img src={lockClosedSrc} alt="" className="pin-lock-img" style={{ opacity: isOpen ? 0 : 1 }} />
+      <img src={lockOpenSrc}   alt="" className="pin-lock-img" style={{ opacity: isOpen ? 1 : 0 }} />
+    </div>
+  )
 }
 
 export default function App() {
@@ -18,6 +29,8 @@ export default function App() {
   const formRef = useRef(null)
   const [showPinModal, setShowPinModal] = useState(false)
   const [pinValue, setPinValue] = useState('')
+  const [pinStatus, setPinStatus] = useState('idle') // 'idle' | 'wrong' | 'correct'
+  const [isClosing, setIsClosing] = useState(false)
 
   const [showIntro, setShowIntro] = useState(true)
 
@@ -44,16 +57,31 @@ export default function App() {
     setEntries(prev => prev.filter(e => e.id !== id))
   }
 
+  const closePinModal = () => {
+    setShowPinModal(false)
+    setPinValue('')
+    setPinStatus('idle')
+    setIsClosing(false)
+  }
+
   const handlePinChange = (e) => {
+    if (pinStatus !== 'idle') return
     const val = e.target.value.replace(/\D/g, '').slice(0, 4)
     setPinValue(val)
     if (val.length === 4) {
       if (val === '1234') {
-        setIsUnlocked(true)
-        setShowPinModal(false)
-        setPinValue('')
+        setPinStatus('correct')
+        setTimeout(() => setIsClosing(true), 500)
+        setTimeout(() => {
+          setIsUnlocked(true)
+          closePinModal()
+        }, 900)
       } else {
-        setTimeout(() => setPinValue(''), 300)
+        setPinStatus('wrong')
+        setTimeout(() => {
+          setPinValue('')
+          setPinStatus('idle')
+        }, 600)
       }
     }
   }
@@ -64,6 +92,8 @@ export default function App() {
       setShowNewEntryForm(false)
     } else {
       setShowPinModal(true)
+      setPinStatus('idle')
+      setIsClosing(false)
     }
   }
 
@@ -94,7 +124,7 @@ export default function App() {
 
       <div className={`app${isUnlocked ? ' app--edit-mode' : ''}`}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <h1 className="form-title form-title--page">My Leadership Diary</h1>
+          <h1 className="form-title form-title--page">My Leadership Diar<span style={{ marginLeft: '3px' }}>y</span></h1>
 
           {isUnlocked && showNewEntryForm && (
             <NewEntryForm
@@ -122,10 +152,11 @@ export default function App() {
 
       {showPinModal && (
         <div
-          className="pin-modal-overlay"
-          onClick={e => { if (e.target === e.currentTarget) { setShowPinModal(false); setPinValue('') } }}
+          className={`pin-modal-overlay${isClosing ? ' pin-modal-overlay--closing' : ''}`}
+          onClick={e => { if (e.target === e.currentTarget && pinStatus === 'idle') closePinModal() }}
         >
           <div className="pin-modal">
+            <PinLock isOpen={pinStatus === 'correct'} isJiggling={pinStatus === 'wrong'} />
             <input
               type="password"
               maxLength={4}
@@ -134,7 +165,7 @@ export default function App() {
               value={pinValue}
               onChange={handlePinChange}
               onKeyDown={e => {
-                if (e.key === 'Escape') { setShowPinModal(false); setPinValue('') }
+                if (e.key === 'Escape' && pinStatus === 'idle') closePinModal()
               }}
               autoFocus
             />

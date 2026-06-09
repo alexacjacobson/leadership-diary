@@ -54,6 +54,8 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   const [editBiggestChallenges, setEditBiggestChallenges] = useState(entry.biggestChallenges || '')
   const [editKeyLearnings, setEditKeyLearnings] = useState(entry.keyLearnings || '')
   const [editNewGoals, setEditNewGoals] = useState(entry.newGoals || '')
+  const [editKeywords, setEditKeywords] = useState(entry.keywords || [])
+  const [editKeywordInput, setEditKeywordInput] = useState('')
   const [editPhotos, setEditPhotos] = useState(entry.photos || [])
   const [newEditPhotos, setNewEditPhotos] = useState([])
   const [editDocuments, setEditDocuments] = useState(entry.documents || [])
@@ -86,6 +88,8 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     setEditBiggestChallenges(entry.biggestChallenges || '')
     setEditKeyLearnings(entry.keyLearnings || '')
     setEditNewGoals(entry.newGoals || '')
+    setEditKeywords(entry.keywords ? [...entry.keywords] : [])
+    setEditKeywordInput('')
     setEditPhotos(entry.photos ? [...entry.photos] : [])
     setNewEditPhotos([])
     setEditDocuments(entry.documents ? [...entry.documents] : [])
@@ -99,6 +103,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
       biggestChallenges: editBiggestChallenges.trim(),
       keyLearnings: editKeyLearnings.trim(),
       newGoals: editNewGoals.trim(),
+      keywords: editKeywords,
       photos: [...editPhotos, ...newEditPhotos],
       documents: editDocuments,
     })
@@ -113,6 +118,8 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     setEditBiggestChallenges(entry.biggestChallenges || '')
     setEditKeyLearnings(entry.keyLearnings || '')
     setEditNewGoals(entry.newGoals || '')
+    setEditKeywords(entry.keywords ? [...entry.keywords] : [])
+    setEditKeywordInput('')
     setEditPhotos(entry.photos ? [...entry.photos] : [])
     setNewEditPhotos([])
     setEditDocuments(entry.documents ? [...entry.documents] : [])
@@ -207,7 +214,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
       className="entry-card"
       style={{
         animationDelay: `${index * 80}ms`,
-        ...(isEditing ? { outline: '2px solid #3B5BDB', borderRadius: '4px', padding: 0, background: '#FFFFFF' } : {}),
+        ...(isEditing ? { outline: '2px solid var(--color-cobalt)', borderRadius: '4px', padding: 0, background: 'var(--color-surface)' } : {}),
       }}
     >
       {/* Entry controls */}
@@ -223,7 +230,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
               type="button"
               onClick={() => onDelete(entry.id)}
               aria-label="Delete entry"
-              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#888888', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: 'var(--color-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
             >
               <Trash2 size={15} />
             </button>
@@ -294,11 +301,49 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             aria-label="Edit new goals"
           />
 
+          <hr className="entry-section-divider" />
+          <p className="form-section-label">Keywords</p>
+          {editKeywords.length > 0 && (
+            <div className="keywords-row">
+              {editKeywords.map((kw, i) => (
+                <span key={i} className="keyword-pill">
+                  {kw}
+                  <button
+                    type="button"
+                    className="keyword-pill__remove"
+                    onClick={() => setEditKeywords(prev => prev.filter((_, j) => j !== i))}
+                    aria-label={`Remove ${kw}`}
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <input
+            className="keyword-input"
+            type="text"
+            placeholder="add a keyword..."
+            value={editKeywordInput}
+            onChange={e => setEditKeywordInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const trimmed = editKeywordInput.trim()
+                if (trimmed) {
+                  setEditKeywords(prev => [...prev, trimmed])
+                  setEditKeywordInput('')
+                }
+              }
+            }}
+            aria-label="Add keyword"
+          />
+
           <div style={{ marginTop: '12px' }}>
             <button
               type="button"
               onClick={() => mediaAddRef.current?.click()}
-              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: '#888888', cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer' }}
             >
               + add media
             </button>
@@ -399,7 +444,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             <button
               type="button"
               onClick={handleCancelEdit}
-              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: '#888888', cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: 'var(--color-muted)', cursor: 'pointer' }}
             >
               cancel edits
             </button>
@@ -407,7 +452,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
               type="button"
               onClick={handleSave}
               aria-label="Save edits"
-              style={{ background: 'none', border: 'none', padding: 0, color: '#3B5BDB', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'var(--color-cobalt)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
             >
               <Check size={18} />
             </button>
@@ -421,7 +466,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
               onDoubleClick={isUnlocked ? handleStartEdit : undefined}
             >
               <span className="entry-week-label" style={{ position: 'absolute', top: '16px', right: '16px', marginBottom: 0 }}>
-                {entry.weekLabel} — {formatDate(entry.createdAt)}
+                {formatDate(entry.createdAt)}
               </span>
               {entry.module && (
                 <span className="entry-module-label">{entry.module}</span>
@@ -446,6 +491,13 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
                   <p className="form-section-label">New Goals</p>
                   <p className="entry-reflection">{entry.newGoals}</p>
                 </>
+              )}
+              {(entry.keywords || []).length > 0 && (
+                <div className="keywords-row">
+                  {entry.keywords.map((kw, i) => (
+                    <span key={i} className="keyword-pill">{kw}</span>
+                  ))}
+                </div>
               )}
             </div>
           )}

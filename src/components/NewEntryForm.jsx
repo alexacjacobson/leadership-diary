@@ -49,6 +49,8 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
   const [biggestChallenges, setBiggestChallenges] = useState('')
   const [keyLearnings, setKeyLearnings] = useState('')
   const [newGoals, setNewGoals] = useState('')
+  const [keywords, setKeywords] = useState([])
+  const [keywordInput, setKeywordInput] = useState('')
   const [photos, setPhotos] = useState([])
   const [documents, setDocuments] = useState([])
   const mediaFileRef = useRef(null)
@@ -119,6 +121,7 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
       biggestChallenges: biggestChallenges.trim(),
       keyLearnings: keyLearnings.trim(),
       newGoals: newGoals.trim(),
+      keywords,
       photos,
       documents,
     })
@@ -127,6 +130,8 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
     setBiggestChallenges('')
     setKeyLearnings('')
     setNewGoals('')
+    setKeywords([])
+    setKeywordInput('')
     setPhotos([])
     setDocuments([])
   }
@@ -209,6 +214,45 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
             onChange={e => setNewGoals(e.target.value)}
             onKeyDown={handleKeyDown}
             aria-label="New goals"
+          />
+        </div>
+
+        <div className="form-section-group">
+          <p className="form-section-label">Keywords</p>
+          {keywords.length > 0 && (
+            <div className="keywords-row">
+              {keywords.map((kw, i) => (
+                <span key={i} className="keyword-pill">
+                  {kw}
+                  <button
+                    type="button"
+                    className="keyword-pill__remove"
+                    onClick={() => setKeywords(prev => prev.filter((_, j) => j !== i))}
+                    aria-label={`Remove ${kw}`}
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <input
+            className="keyword-input"
+            type="text"
+            placeholder="add a keyword..."
+            value={keywordInput}
+            onChange={e => setKeywordInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const trimmed = keywordInput.trim()
+                if (trimmed) {
+                  setKeywords(prev => [...prev, trimmed])
+                  setKeywordInput('')
+                }
+              }
+            }}
+            aria-label="Add keyword"
           />
         </div>
 
