@@ -431,21 +431,18 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
               )}
               {entry.biggestChallenges && (
                 <>
-                  <hr className="entry-section-divider" />
                   <p className="form-section-label">Biggest Challenges</p>
                   <p className="entry-reflection">{entry.biggestChallenges}</p>
                 </>
               )}
               {entry.keyLearnings && (
                 <>
-                  <hr className="entry-section-divider" />
                   <p className="form-section-label">Key Learnings</p>
                   <p className="entry-reflection">{entry.keyLearnings}</p>
                 </>
               )}
               {entry.newGoals && (
                 <>
-                  <hr className="entry-section-divider" />
                   <p className="form-section-label">New Goals</p>
                   <p className="entry-reflection">{entry.newGoals}</p>
                 </>

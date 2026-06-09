@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { getEntries, saveEntry, updateEntry, deleteEntry } from './hooks/useEntries'
-import { getStickers, saveStickers } from './hooks/useStickers'
 import NavHeader from './components/NavHeader'
 import EntryCard from './components/EntryCard'
 import NewEntryForm from './components/NewEntryForm'
-import StickerTray from './components/StickerTray'
-import StickerLayer from './components/StickerLayer'
+import Stickers from './components/Stickers'
 import CoverIntro from './components/CoverIntro'
 
 function uid() {
@@ -23,13 +21,8 @@ export default function App() {
 
   const [showIntro, setShowIntro] = useState(true)
 
-  const [stickers, setStickers] = useState([])
-  const stickersRef = useRef([])
-  useEffect(() => { stickersRef.current = stickers }, [stickers])
-
   useEffect(() => {
     getEntries().then(setEntries)
-    getStickers().then(setStickers)
   }, [])
 
   const handleSave = async (entry) => {
@@ -72,27 +65,6 @@ export default function App() {
     } else {
       setShowPinModal(true)
     }
-  }
-
-  const handlePlaceSticker = (type, x, y) => {
-    const newSticker = { id: uid(), type, x: Math.round(x), y: Math.round(y) }
-    const updated = [...stickers, newSticker]
-    setStickers(updated)
-    saveStickers(updated)
-  }
-
-  const handleMoveSticker = (id, x, y) => {
-    setStickers(prev => prev.map(s => s.id === id ? { ...s, x, y } : s))
-  }
-
-  const handleMoveStickerEnd = () => {
-    saveStickers(stickersRef.current)
-  }
-
-  const handleDeleteSticker = (id) => {
-    const updated = stickers.filter(s => s.id !== id)
-    setStickers(updated)
-    saveStickers(updated)
   }
 
   return (
@@ -170,13 +142,7 @@ export default function App() {
         </div>
       )}
 
-      <StickerLayer
-        stickers={stickers}
-        onMove={handleMoveSticker}
-        onMoveEnd={handleMoveStickerEnd}
-        onDelete={handleDeleteSticker}
-      />
-      <StickerTray onPlace={handlePlaceSticker} />
+      <Stickers />
       {showIntro && <CoverIntro onComplete={() => setShowIntro(false)} />}
     </>
   )
