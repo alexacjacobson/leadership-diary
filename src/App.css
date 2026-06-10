@@ -1829,3 +1829,43 @@ textarea, input {
     transform: scale(1) rotate(0deg);
   }
 }
+
+/* Delete undo toast */
+.delete-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, #e8e4da);
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-ink);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  z-index: 10000;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.delete-toast--fading {
+  opacity: 0;
+}
+
+.delete-toast__undo {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #D45FA8;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+}
+
+.delete-toast__undo:hover {
+  text-decoration-color: #D45FA8;
+}

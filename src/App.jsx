@@ -33,9 +33,18 @@ export default function App() {
   const [isClosing, setIsClosing] = useState(false)
 
   const [showIntro, setShowIntro] = useState(true)
+  const [pendingDeleteEntry, setPendingDeleteEntry] = useState(null)
+  const [toastFading, setToastFading] = useState(false)
+  const deleteTimerRef = useRef(null)
+  const fadeTimerRef = useRef(null)
 
   useEffect(() => {
     getEntries().then(setEntries)
+  }, [])
+
+  useEffect(() => () => {
+    clearTimeout(deleteTimerRef.current)
+    clearTimeout(fadeTimerRef.current)
   }, [])
 
   const handleSave = async (entry) => {
@@ -44,17 +53,54 @@ export default function App() {
     setShowNewEntryForm(false)
   }
 
-  const handleUpdate = async (id, patch) => {
-    const existing = entries.find(e => e.id === id)
-    if (!existing) return
-    const merged = { ...existing, ...patch }
-    await updateEntry(merged)
-    setEntries(prev => prev.map(e => e.id === id ? merged : e))
+  const entryHasContent = (e) =>
+    e.title || e.reflection || e.biggestChallenges || e.keyLearnings || e.newGoals ||
+    (e.customSections || []).some(s => s.content) ||
+    (e.photos || []).length > 0 ||
+    (e.documents || []).length > 0 ||
+    (e.links || []).length > 0
+
+  const handleUpdate = (id, patch) => {
+    setEntries(prev => {
+      const existing = prev.find(e => e.id === id)
+      if (!existing) return prev
+      const merged = { ...existing, ...patch }
+      if (!entryHasContent(merged)) return prev
+      updateEntry(merged).catch(console.error)
+      return prev.map(e => e.id === id ? merged : e)
+    })
   }
 
-  const handleDelete = async (id) => {
-    await deleteEntry(id)
+  const handleDelete = (id) => {
+    const entry = entries.find(e => e.id === id)
+    if (!entry) return
+    clearTimeout(deleteTimerRef.current)
+    clearTimeout(fadeTimerRef.current)
+    if (pendingDeleteEntry) {
+      deleteEntry(pendingDeleteEntry.id).catch(console.error)
+    }
     setEntries(prev => prev.filter(e => e.id !== id))
+    setPendingDeleteEntry(entry)
+    setToastFading(false)
+    fadeTimerRef.current = setTimeout(() => setToastFading(true), 4500)
+    deleteTimerRef.current = setTimeout(() => {
+      deleteEntry(entry.id).catch(console.error)
+      setPendingDeleteEntry(null)
+      setToastFading(false)
+    }, 5000)
+  }
+
+  const handleUndoDelete = () => {
+    clearTimeout(deleteTimerRef.current)
+    clearTimeout(fadeTimerRef.current)
+    if (pendingDeleteEntry) {
+      setEntries(prev => {
+        const restored = [...prev, pendingDeleteEntry]
+        return restored.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      })
+    }
+    setPendingDeleteEntry(null)
+    setToastFading(false)
   }
 
   const closePinModal = () => {
@@ -175,6 +221,15 @@ export default function App() {
 
       <Stickers />
       {showIntro && <CoverIntro onComplete={() => setShowIntro(false)} />}
+
+      {pendingDeleteEntry && (
+        <div className={`delete-toast${toastFading ? ' delete-toast--fading' : ''}`}>
+          Entry deleted —{' '}
+          <button type="button" className="delete-toast__undo" onClick={handleUndoDelete}>
+            undo
+          </button>
+        </div>
+      )}
     </>
   )
 }

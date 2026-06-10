@@ -121,7 +121,6 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
       customSections: editCustomSections,
     })
     setIsEditing(false)
-    setShowActions(false)
   }
 
   const handleCancelEdit = () => {
@@ -141,7 +140,6 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     setEditHiddenSections(entry.hiddenSections || { biggestChallenges: false, keyLearnings: false, newGoals: false })
     setEditCustomSections(entry.customSections ? [...entry.customSections] : [])
     setIsEditing(false)
-    setShowActions(false)
   }
 
   const updateEditPhoto = (photoId, patch) => {
