@@ -247,7 +247,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     onUpdate(entry.id, { documents: updatedDocs })
   }
 
-  const hasContent = entry.reflection || entry.biggestChallenges || entry.keyLearnings || entry.newGoals
+  const hasContent = true
 
   return (
     <article

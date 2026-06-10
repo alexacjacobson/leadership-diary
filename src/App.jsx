@@ -53,19 +53,11 @@ export default function App() {
     setShowNewEntryForm(false)
   }
 
-  const entryHasContent = (e) =>
-    e.title || e.reflection || e.biggestChallenges || e.keyLearnings || e.newGoals ||
-    (e.customSections || []).some(s => s.content) ||
-    (e.photos || []).length > 0 ||
-    (e.documents || []).length > 0 ||
-    (e.links || []).length > 0
-
   const handleUpdate = (id, patch) => {
     setEntries(prev => {
       const existing = prev.find(e => e.id === id)
       if (!existing) return prev
       const merged = { ...existing, ...patch }
-      if (!entryHasContent(merged)) return prev
       updateEntry(merged).catch(console.error)
       return prev.map(e => e.id === id ? merged : e)
     })

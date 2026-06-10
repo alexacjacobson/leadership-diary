@@ -80,15 +80,7 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
   const updateCustomSection = (id, patch) =>
     setCustomSections(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s))
 
-  const canPost =
-    reflection.trim().length > 0 ||
-    biggestChallenges.trim().length > 0 ||
-    keyLearnings.trim().length > 0 ||
-    newGoals.trim().length > 0 ||
-    customSections.some(s => s.content.trim().length > 0) ||
-    photos.length > 0 ||
-    documents.length > 0 ||
-    links.length > 0
+  const canPost = true
 
   const handleMediaFiles = async (e) => {
     const files = Array.from(e.target.files)
