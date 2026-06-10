@@ -61,6 +61,8 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   const [editPhotos, setEditPhotos] = useState(entry.photos || [])
   const [newEditPhotos, setNewEditPhotos] = useState([])
   const [editDocuments, setEditDocuments] = useState(entry.documents || [])
+  const [editHiddenSections, setEditHiddenSections] = useState(entry.hiddenSections || { biggestChallenges: false, keyLearnings: false, newGoals: false })
+  const [editCustomSections, setEditCustomSections] = useState(entry.customSections || [])
   const replaceRefs = useRef({})
   const mediaAddRef = useRef(null)
 
@@ -96,6 +98,8 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     setEditPhotos(entry.photos ? [...entry.photos] : [])
     setNewEditPhotos([])
     setEditDocuments(entry.documents ? [...entry.documents] : [])
+    setEditHiddenSections(entry.hiddenSections || { biggestChallenges: false, keyLearnings: false, newGoals: false })
+    setEditCustomSections(entry.customSections ? [...entry.customSections] : [])
     setIsEditing(true)
   }
 
@@ -110,6 +114,8 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
       links: editLinks,
       photos: [...editPhotos, ...newEditPhotos],
       documents: editDocuments,
+      hiddenSections: editHiddenSections,
+      customSections: editCustomSections,
     })
     setIsEditing(false)
     setShowActions(false)
@@ -128,6 +134,8 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
     setEditPhotos(entry.photos ? [...entry.photos] : [])
     setNewEditPhotos([])
     setEditDocuments(entry.documents ? [...entry.documents] : [])
+    setEditHiddenSections(entry.hiddenSections || { biggestChallenges: false, keyLearnings: false, newGoals: false })
+    setEditCustomSections(entry.customSections ? [...entry.customSections] : [])
     setIsEditing(false)
     setShowActions(false)
   }
@@ -189,6 +197,15 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   const removeEditLink = (id) => {
     setEditLinks(prev => prev.filter(l => l.id !== id))
   }
+
+  const toggleEditDefaultSection = (key) =>
+    setEditHiddenSections(prev => ({ ...prev, [key]: !prev[key] }))
+
+  const addEditCustomSection = () =>
+    setEditCustomSections(prev => [...prev, { id: uid(), label: '', content: '', hidden: false }])
+
+  const updateEditCustomSection = (id, patch) =>
+    setEditCustomSections(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s))
 
   const handlePhotoPositionChange = (photoId, x, y) => {
     const updatedPhotos = (entry.photos || []).map(p =>
@@ -292,35 +309,91 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
             aria-label="Edit reflection"
           />
           <hr className="entry-section-divider" />
-          <p className="form-section-label">Biggest Challenges</p>
-          <textarea
-            className="entry-edit-textarea"
-            style={{ minHeight: '60px' }}
-            value={editBiggestChallenges}
-            onChange={e => setEditBiggestChallenges(e.target.value)}
-            rows={2}
-            aria-label="Edit biggest challenges"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <p className="form-section-label" style={{ margin: 0 }}>Biggest Challenges</p>
+            <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#FFB8E7', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', cursor: 'pointer', lineHeight: 1 }} onClick={() => toggleEditDefaultSection('biggestChallenges')}>
+              {editHiddenSections.biggestChallenges ? '(show)' : '(hide)'}
+            </button>
+          </div>
+          {!editHiddenSections.biggestChallenges && (
+            <textarea
+              className="entry-edit-textarea"
+              style={{ minHeight: '60px' }}
+              value={editBiggestChallenges}
+              onChange={e => setEditBiggestChallenges(e.target.value)}
+              rows={2}
+              aria-label="Edit biggest challenges"
+            />
+          )}
           <hr className="entry-section-divider" />
-          <p className="form-section-label">Key Learnings</p>
-          <textarea
-            className="entry-edit-textarea"
-            style={{ minHeight: '60px' }}
-            value={editKeyLearnings}
-            onChange={e => setEditKeyLearnings(e.target.value)}
-            rows={2}
-            aria-label="Edit key learnings"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <p className="form-section-label" style={{ margin: 0 }}>Key Learnings</p>
+            <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#FFB8E7', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', cursor: 'pointer', lineHeight: 1 }} onClick={() => toggleEditDefaultSection('keyLearnings')}>
+              {editHiddenSections.keyLearnings ? '(show)' : '(hide)'}
+            </button>
+          </div>
+          {!editHiddenSections.keyLearnings && (
+            <textarea
+              className="entry-edit-textarea"
+              style={{ minHeight: '60px' }}
+              value={editKeyLearnings}
+              onChange={e => setEditKeyLearnings(e.target.value)}
+              rows={2}
+              aria-label="Edit key learnings"
+            />
+          )}
           <hr className="entry-section-divider" />
-          <p className="form-section-label">New Goals</p>
-          <textarea
-            className="entry-edit-textarea"
-            style={{ minHeight: '60px' }}
-            value={editNewGoals}
-            onChange={e => setEditNewGoals(e.target.value)}
-            rows={2}
-            aria-label="Edit new goals"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <p className="form-section-label" style={{ margin: 0 }}>New Goals</p>
+            <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#FFB8E7', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', cursor: 'pointer', lineHeight: 1 }} onClick={() => toggleEditDefaultSection('newGoals')}>
+              {editHiddenSections.newGoals ? '(show)' : '(hide)'}
+            </button>
+          </div>
+          {!editHiddenSections.newGoals && (
+            <textarea
+              className="entry-edit-textarea"
+              style={{ minHeight: '60px' }}
+              value={editNewGoals}
+              onChange={e => setEditNewGoals(e.target.value)}
+              rows={2}
+              aria-label="Edit new goals"
+            />
+          )}
+
+          {editCustomSections.map(section => (
+            <div key={section.id}>
+              <hr className="entry-section-divider" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <input
+                  type="text"
+                  value={section.label}
+                  onChange={e => updateEditCustomSection(section.id, { label: e.target.value })}
+                  placeholder="SECTION LABEL"
+                  style={{ background: 'none', border: 'none', borderBottom: '1px solid var(--color-cobalt)', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'var(--color-cobalt)', letterSpacing: '0.08em', textTransform: 'uppercase', outline: 'none', width: '180px', padding: '0 0 1px 0' }}
+                  aria-label="Custom section label"
+                />
+                <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#FFB8E7', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', cursor: 'pointer', lineHeight: 1 }} onClick={() => updateEditCustomSection(section.id, { hidden: !section.hidden })}>
+                  {section.hidden ? '(show)' : '(hide)'}
+                </button>
+              </div>
+              {!section.hidden && (
+                <textarea
+                  className="entry-edit-textarea"
+                  style={{ minHeight: '60px', marginTop: '6px' }}
+                  value={section.content}
+                  onChange={e => updateEditCustomSection(section.id, { content: e.target.value })}
+                  rows={2}
+                  aria-label="Custom section content"
+                />
+              )}
+            </div>
+          ))}
+
+          <div style={{ marginTop: '8px' }}>
+            <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#D45FA8', fontFamily: 'JetBrains Mono, monospace', fontSize: '18px', cursor: 'pointer', lineHeight: 1 }} onClick={addEditCustomSection} aria-label="Add custom section">
+              +
+            </button>
+          </div>
 
           <hr className="entry-section-divider" />
           <p className="form-section-label">Keywords</p>
@@ -503,24 +576,30 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
               {entry.reflection && (
                 <p className="entry-reflection">{entry.reflection}</p>
               )}
-              {entry.biggestChallenges && (
+              {entry.biggestChallenges && !entry.hiddenSections?.biggestChallenges && (
                 <>
                   <p className="form-section-label">Biggest Challenges</p>
                   <p className="entry-reflection">{entry.biggestChallenges}</p>
                 </>
               )}
-              {entry.keyLearnings && (
+              {entry.keyLearnings && !entry.hiddenSections?.keyLearnings && (
                 <>
                   <p className="form-section-label">Key Learnings</p>
                   <p className="entry-reflection">{entry.keyLearnings}</p>
                 </>
               )}
-              {entry.newGoals && (
+              {entry.newGoals && !entry.hiddenSections?.newGoals && (
                 <>
                   <p className="form-section-label">New Goals</p>
                   <p className="entry-reflection">{entry.newGoals}</p>
                 </>
               )}
+              {(entry.customSections || []).filter(s => !s.hidden).map(section => section.content && (
+                <div key={section.id}>
+                  {section.label && <p className="form-section-label">{section.label}</p>}
+                  <p className="entry-reflection">{section.content}</p>
+                </div>
+              ))}
               {(entry.keywords || []).length > 0 && (
                 <div className="keywords-row">
                   {entry.keywords.map((kw, i) => (

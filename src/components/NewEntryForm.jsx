@@ -55,6 +55,8 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
   const [photos, setPhotos] = useState([])
   const [documents, setDocuments] = useState([])
   const [links, setLinks] = useState([])
+  const [hiddenSections, setHiddenSections] = useState({ biggestChallenges: false, keyLearnings: false, newGoals: false })
+  const [customSections, setCustomSections] = useState([])
   const mediaFileRef = useRef(null)
 
   useEffect(() => {
@@ -68,11 +70,21 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
     return () => document.removeEventListener('mousedown', handleOutside)
   }, [showModuleDropdown])
 
+  const toggleDefaultSection = (key) =>
+    setHiddenSections(prev => ({ ...prev, [key]: !prev[key] }))
+
+  const addCustomSection = () =>
+    setCustomSections(prev => [...prev, { id: uid(), label: '', content: '', hidden: false }])
+
+  const updateCustomSection = (id, patch) =>
+    setCustomSections(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s))
+
   const canPost =
     reflection.trim().length > 0 ||
     biggestChallenges.trim().length > 0 ||
     keyLearnings.trim().length > 0 ||
     newGoals.trim().length > 0 ||
+    customSections.some(s => s.content.trim().length > 0) ||
     photos.length > 0 ||
     documents.length > 0 ||
     links.length > 0
@@ -140,6 +152,8 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
       photos,
       documents,
       links,
+      hiddenSections,
+      customSections,
     })
     setModule(MODULES[0])
     setReflection('')
@@ -151,6 +165,8 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
     setPhotos([])
     setDocuments([])
     setLinks([])
+    setHiddenSections({ biggestChallenges: false, keyLearnings: false, newGoals: false })
+    setCustomSections([])
   }
 
   const handleKeyDown = (e) => {
@@ -202,36 +218,90 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
         />
 
         <div className="form-section-group">
-          <p className="form-section-label">Biggest Challenges</p>
-          <textarea
-            className="reflection-textarea reflection-textarea--sm"
-            value={biggestChallenges}
-            onChange={e => setBiggestChallenges(e.target.value)}
-            onKeyDown={handleKeyDown}
-            aria-label="Biggest challenges"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <p className="form-section-label" style={{ margin: 0 }}>Biggest Challenges</p>
+            <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#FFB8E7', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', cursor: 'pointer', lineHeight: 1 }} onClick={() => toggleDefaultSection('biggestChallenges')}>
+              {hiddenSections.biggestChallenges ? '(show)' : '(hide)'}
+            </button>
+          </div>
+          {!hiddenSections.biggestChallenges && (
+            <textarea
+              className="reflection-textarea reflection-textarea--sm"
+              value={biggestChallenges}
+              onChange={e => setBiggestChallenges(e.target.value)}
+              onKeyDown={handleKeyDown}
+              aria-label="Biggest challenges"
+            />
+          )}
         </div>
 
         <div className="form-section-group">
-          <p className="form-section-label">Key Learnings</p>
-          <textarea
-            className="reflection-textarea reflection-textarea--sm"
-            value={keyLearnings}
-            onChange={e => setKeyLearnings(e.target.value)}
-            onKeyDown={handleKeyDown}
-            aria-label="Key learnings"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <p className="form-section-label" style={{ margin: 0 }}>Key Learnings</p>
+            <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#FFB8E7', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', cursor: 'pointer', lineHeight: 1 }} onClick={() => toggleDefaultSection('keyLearnings')}>
+              {hiddenSections.keyLearnings ? '(show)' : '(hide)'}
+            </button>
+          </div>
+          {!hiddenSections.keyLearnings && (
+            <textarea
+              className="reflection-textarea reflection-textarea--sm"
+              value={keyLearnings}
+              onChange={e => setKeyLearnings(e.target.value)}
+              onKeyDown={handleKeyDown}
+              aria-label="Key learnings"
+            />
+          )}
         </div>
 
         <div className="form-section-group">
-          <p className="form-section-label">New Goals</p>
-          <textarea
-            className="reflection-textarea reflection-textarea--sm"
-            value={newGoals}
-            onChange={e => setNewGoals(e.target.value)}
-            onKeyDown={handleKeyDown}
-            aria-label="New goals"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <p className="form-section-label" style={{ margin: 0 }}>New Goals</p>
+            <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#FFB8E7', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', cursor: 'pointer', lineHeight: 1 }} onClick={() => toggleDefaultSection('newGoals')}>
+              {hiddenSections.newGoals ? '(show)' : '(hide)'}
+            </button>
+          </div>
+          {!hiddenSections.newGoals && (
+            <textarea
+              className="reflection-textarea reflection-textarea--sm"
+              value={newGoals}
+              onChange={e => setNewGoals(e.target.value)}
+              onKeyDown={handleKeyDown}
+              aria-label="New goals"
+            />
+          )}
+        </div>
+
+        {customSections.map(section => (
+          <div key={section.id} className="form-section-group">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <input
+                type="text"
+                value={section.label}
+                onChange={e => updateCustomSection(section.id, { label: e.target.value })}
+                placeholder="SECTION LABEL"
+                style={{ background: 'none', border: 'none', borderBottom: '1px solid var(--color-cobalt)', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'var(--color-cobalt)', letterSpacing: '0.08em', textTransform: 'uppercase', outline: 'none', width: '180px', padding: '0 0 1px 0' }}
+                aria-label="Custom section label"
+              />
+              <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#FFB8E7', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', cursor: 'pointer', lineHeight: 1 }} onClick={() => updateCustomSection(section.id, { hidden: !section.hidden })}>
+                {section.hidden ? '(show)' : '(hide)'}
+              </button>
+            </div>
+            {!section.hidden && (
+              <textarea
+                className="reflection-textarea reflection-textarea--sm"
+                value={section.content}
+                onChange={e => updateCustomSection(section.id, { content: e.target.value })}
+                onKeyDown={handleKeyDown}
+                aria-label="Custom section content"
+              />
+            )}
+          </div>
+        ))}
+
+        <div style={{ marginTop: '4px' }}>
+          <button type="button" style={{ background: 'none', border: 'none', padding: 0, color: '#D45FA8', fontFamily: 'JetBrains Mono, monospace', fontSize: '18px', cursor: 'pointer', lineHeight: 1 }} onClick={addCustomSection} aria-label="Add custom section">
+            +
+          </button>
         </div>
 
         <div className="form-section-group">
