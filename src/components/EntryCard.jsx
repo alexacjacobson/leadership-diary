@@ -51,6 +51,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   const [editModule, setEditModule] = useState(entry.module || MODULES[0])
   const [showModuleDropdown, setShowModuleDropdown] = useState(false)
   const moduleDropdownRef = useRef(null)
+  const [editTitle, setEditTitle] = useState(entry.title || '')
   const [editReflection, setEditReflection] = useState(entry.reflection || '')
   const [editBiggestChallenges, setEditBiggestChallenges] = useState(entry.biggestChallenges || '')
   const [editKeyLearnings, setEditKeyLearnings] = useState(entry.keyLearnings || '')
@@ -88,6 +89,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
 
   const handleStartEdit = () => {
     setEditModule(entry.module || MODULES[0])
+    setEditTitle(entry.title || '')
     setEditReflection(entry.reflection || '')
     setEditBiggestChallenges(entry.biggestChallenges || '')
     setEditKeyLearnings(entry.keyLearnings || '')
@@ -106,6 +108,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   const handleSave = () => {
     onUpdate(entry.id, {
       module: editModule,
+      title: editTitle.trim(),
       reflection: editReflection.trim(),
       biggestChallenges: editBiggestChallenges.trim(),
       keyLearnings: editKeyLearnings.trim(),
@@ -124,6 +127,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   const handleCancelEdit = () => {
     setEditModule(entry.module || MODULES[0])
     setShowModuleDropdown(false)
+    setEditTitle(entry.title || '')
     setEditReflection(entry.reflection || '')
     setEditBiggestChallenges(entry.biggestChallenges || '')
     setEditKeyLearnings(entry.keyLearnings || '')
@@ -299,6 +303,14 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
               </div>
             )}
           </div>
+          <input
+            type="text"
+            className="entry-title-input"
+            placeholder="entry title..."
+            value={editTitle}
+            onChange={e => setEditTitle(e.target.value)}
+            aria-label="Entry title"
+          />
           <textarea
             className="entry-edit-textarea"
             value={editReflection}
@@ -572,6 +584,9 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
               </span>
               {entry.module && (
                 <span className="entry-module-label">{entry.module}</span>
+              )}
+              {entry.title && (
+                <p style={{ fontFamily: 'var(--font-body)', fontWeight: 700, margin: '4px 0 0 0', fontSize: '16px', lineHeight: 1.3 }}>{entry.title}</p>
               )}
               {entry.reflection && (
                 <p className="entry-reflection">{entry.reflection}</p>

@@ -46,6 +46,7 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
   const [module, setModule] = useState(MODULES[0])
   const [showModuleDropdown, setShowModuleDropdown] = useState(false)
   const moduleDropdownRef = useRef(null)
+  const [title, setTitle] = useState('')
   const [reflection, setReflection] = useState('')
   const [biggestChallenges, setBiggestChallenges] = useState('')
   const [keyLearnings, setKeyLearnings] = useState('')
@@ -144,6 +145,7 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
       createdAt: new Date().toISOString(),
       weekLabel: weekLabel(entryCount),
       module,
+      title: title.trim(),
       reflection: reflection.trim(),
       biggestChallenges: biggestChallenges.trim(),
       keyLearnings: keyLearnings.trim(),
@@ -156,6 +158,7 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
       customSections,
     })
     setModule(MODULES[0])
+    setTitle('')
     setReflection('')
     setBiggestChallenges('')
     setKeyLearnings('')
@@ -207,6 +210,16 @@ const NewEntryForm = forwardRef(function NewEntryForm({ entryCount, onSave, onCa
             </div>
           )}
         </div>
+
+        <input
+          type="text"
+          className="entry-title-input"
+          placeholder="entry title..."
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          onKeyDown={handleKeyDown}
+          aria-label="Entry title"
+        />
 
         <textarea
           className="reflection-textarea"

@@ -476,6 +476,27 @@ textarea, input {
 }
 
 /* Reflection textarea — normal flow, transparent on white box */
+.entry-title-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin-bottom: 8px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-ink);
+  caret-color: var(--color-primary);
+}
+
+.entry-title-input::placeholder {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--color-muted);
+}
+
 .reflection-textarea {
   width: 100%;
   min-height: 80px;
