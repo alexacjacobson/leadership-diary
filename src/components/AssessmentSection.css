@@ -166,7 +166,6 @@
 }
 
 .via-card {
-  background: var(--color-surface);
   border-radius: 4px;
   padding: 14px 14px 10px;
   flex: 1 1 110px;
@@ -183,14 +182,22 @@
 }
 
 .via-card--active {
-  outline: 1.5px solid #FFB8E7;
+  filter: brightness(0.88);
+}
+
+.via-card__rank {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  display: block;
+  line-height: 1;
+  margin-bottom: 6px;
 }
 
 .via-card__name {
   font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 14px;
   font-weight: 400;
-  color: var(--color-ink);
   display: block;
   line-height: 1.3;
 }
@@ -204,6 +211,27 @@
   align-items: center;
   margin-top: auto;
   line-height: 1;
+}
+
+.via-card .via-card__arrow-btn svg path {
+  stroke: currentColor;
+}
+
+.via-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.via-legend__badge {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 100px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .via-desc-panels {

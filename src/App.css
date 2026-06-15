@@ -1186,13 +1186,16 @@ textarea, input {
    MODULE LABEL ON ENTRY CARDS
    ===================================================== */
 .entry-module-label {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--color-primary);
-  letter-spacing: 0.04em;
-  display: block;
+  display: inline-block;
+  background: #D45FA8;
+  color: #FAF8F2;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  border-radius: 33px;
+  padding: 6px 20px;
   margin-top: 20px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 /* Section divider inside entry white box */

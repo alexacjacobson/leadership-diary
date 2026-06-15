@@ -74,45 +74,45 @@ const CLIFTON_STRENGTHS = [
 const VIA_STRENGTHS = [
   {
     rank: 1,
-    name: 'Kindness',
-    virtue: 'Humanity',
-    desc: 'You are generous with your time, energy, and attention — doing good for others not out of obligation but because it aligns with who you are. You notice needs others overlook and act on them quietly and consistently.',
+    name: 'Honesty',
+    virtue: 'Courage',
+    desc: 'You are truthful and authentic in your relationships and in how you present yourself. You don\'t hide behind pretense — what people see is who you are. This authenticity builds deep trust and makes your leadership feel real and grounded.',
   },
   {
     rank: 2,
-    name: 'Leadership',
-    virtue: 'Justice',
-    desc: 'You organize activities and make sure things happen while keeping the group cohesive. You don\'t lead through authority alone — you lead by creating conditions where others can contribute, belong, and do their best work.',
+    name: 'Humor',
+    virtue: 'Transcendence',
+    desc: 'You bring lightness to serious spaces without diminishing what matters. You can find the absurd in the difficult, and use that perspective to help others release tension and reconnect to what\'s real.',
   },
   {
     rank: 3,
-    name: 'Social Intelligence',
-    virtue: 'Humanity',
-    desc: 'You are attuned to the emotions and motivations of people around you. You know how to read a room, adapt your approach, and make others feel genuinely understood — a strength that underpins your empathy and developer instincts.',
-  },
-  {
-    rank: 4,
-    name: 'Perseverance',
-    virtue: 'Courage',
-    desc: 'You finish what you start. In the face of setbacks and distractions, you maintain effort and direction. Your persistence isn\'t stubborn — it\'s purposeful, and it earns the trust of anyone who depends on you.',
-  },
-  {
-    rank: 5,
-    name: 'Hope',
-    virtue: 'Transcendence',
-    desc: 'You expect the future to be good and you work toward that expectation. Your positivity is grounded in a genuine belief that things can improve — and your energy actively helps make that true for the people around you.',
-  },
-  {
-    rank: 6,
     name: 'Gratitude',
     virtue: 'Transcendence',
     desc: 'You notice and appreciate the good in your life and the contributions of others. This isn\'t passive thankfulness — it actively shapes how you lead, how you give feedback, and how you build relationships.',
   },
   {
-    rank: 7,
-    name: 'Humor',
+    rank: 4,
+    name: 'Curiosity',
+    virtue: 'Wisdom',
+    desc: 'You find nearly everything interesting. You\'re drawn to exploring new ideas, topics, and experiences, and this openness keeps you perpetually learning. Your curiosity makes you a thoughtful questioner and a genuine asset in any room.',
+  },
+  {
+    rank: 5,
+    name: 'Perspective',
+    virtue: 'Wisdom',
+    desc: 'You have a way of stepping back to see the bigger picture when others are caught in the details. People seek your counsel because you help them make sense of complexity. Your perspective is a stabilizing force in groups and a gift in uncertain moments.',
+  },
+  {
+    rank: 6,
+    name: 'Appreciation of Beauty & Excellence',
     virtue: 'Transcendence',
-    desc: 'You bring lightness to serious spaces without diminishing what matters. You can find the absurd in the difficult, and use that perspective to help others release tension and reconnect to what\'s real.',
+    desc: 'You notice and are moved by beauty, craft, and excellence across all domains — art, nature, science, human achievement. This sensitivity enriches your experience of the world and helps you recognize and celebrate what is genuinely extraordinary in the people around you.',
+  },
+  {
+    rank: 7,
+    name: 'Hope',
+    virtue: 'Transcendence',
+    desc: 'You expect the future to be good and you work toward that expectation. Your positivity is grounded in a genuine belief that things can improve — and your energy actively helps make that true for the people around you.',
   },
   {
     rank: 8,
@@ -122,10 +122,27 @@ const VIA_STRENGTHS = [
   },
   {
     rank: 9,
-    name: 'Zest',
-    virtue: 'Courage',
-    desc: 'You approach life with enthusiasm and energy. You don\'t do things halfway. Even in demanding periods your energy can re-ignite others, and your engagement signals that the work matters.',
+    name: 'Self-Regulation',
+    virtue: 'Temperance',
+    desc: 'You manage your impulses, emotions, and behaviors in service of your goals and values. You don\'t react — you respond. This self-command makes you steady and dependable, and it creates a sense of safety for the people who work alongside you.',
   },
+]
+
+const VIRTUE_COLORS = {
+  Wisdom:        { bg: '#3B5BDB', text: '#FFFFFF' },
+  Courage:       { bg: '#FF6E48', text: '#FFFFFF' },
+  Humanity:      { bg: '#D45FA8', text: '#FFFFFF' },
+  Transcendence: { bg: '#067A42', text: '#FFFFFF' },
+  Justice:       { bg: '#888888', text: '#FFFFFF' },
+  Temperance:    { bg: '#FFB8E7', text: '#D45FA8' },
+}
+
+const VIRTUE_LEGEND = [
+  { virtue: 'Wisdom',        bg: '#3B5BDB', text: '#FFFFFF' },
+  { virtue: 'Courage',       bg: '#FF6E48', text: '#FFFFFF' },
+  { virtue: 'Humanity',      bg: '#D45FA8', text: '#FFFFFF' },
+  { virtue: 'Transcendence', bg: '#067A42', text: '#FFFFFF' },
+  { virtue: 'Temperance',    bg: '#FFB8E7', text: '#D45FA8' },
 ]
 
 // ─── 01 SCARF Block ──────────────────────────────────────────────────────────
@@ -250,22 +267,28 @@ function ViaBlock() {
         </button>
       </div>
       <div className="via-cards-grid">
-        {VIA_STRENGTHS.map(s => (
-          <div
-            key={s.name}
-            className={`via-card${expanded.has(s.name) ? ' via-card--active' : ''}`}
-          >
-            <span className="via-card__name">{s.name}</span>
-            <button
-              className="via-card__arrow-btn"
-              onClick={() => toggleSingle(s.name)}
-              aria-expanded={expanded.has(s.name)}
-              aria-label={`${expanded.has(s.name) ? 'Collapse' : 'Expand'} ${s.name}`}
+        {VIA_STRENGTHS.map(s => {
+          const color = VIRTUE_COLORS[s.virtue]
+          return (
+            <div
+              key={s.name}
+              className={`via-card${expanded.has(s.name) ? ' via-card--active' : ''}`}
+              style={{ background: color.bg }}
             >
-              {expanded.has(s.name) ? <ChevronUp /> : <ChevronDown />}
-            </button>
-          </div>
-        ))}
+              <span className="via-card__rank" style={{ color: color.text }}>{s.rank}</span>
+              <span className="via-card__name" style={{ color: color.text }}>{s.name}</span>
+              <button
+                className="via-card__arrow-btn"
+                style={{ color: color.text }}
+                onClick={() => toggleSingle(s.name)}
+                aria-expanded={expanded.has(s.name)}
+                aria-label={`${expanded.has(s.name) ? 'Collapse' : 'Expand'} ${s.name}`}
+              >
+                {expanded.has(s.name) ? <ChevronUp /> : <ChevronDown />}
+              </button>
+            </div>
+          )
+        })}
       </div>
       {expandedItems.length > 0 && (
         <div className="via-desc-panels">
@@ -277,6 +300,17 @@ function ViaBlock() {
           ))}
         </div>
       )}
+      <div className="via-legend">
+        {VIRTUE_LEGEND.map(v => (
+          <span
+            key={v.virtue}
+            className="via-legend__badge"
+            style={{ background: v.bg, color: v.text }}
+          >
+            {v.virtue}
+          </span>
+        ))}
+      </div>
     </div>
   )
 }
