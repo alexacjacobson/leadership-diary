@@ -20,12 +20,14 @@ export default function NavHeader({ isUnlocked, onLockClick }) {
   return (
     <header className="nav-header">
       <div className="nav-inner">
-        <img src={bloomPink} alt="" className="nav-bloom" />
-        <span
-          className="nav-name"
-          style={{ cursor: 'pointer' }}
-          onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-        >Alexa Jacobson</span>
+        <button
+          className="nav-identity-btn"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Back to top"
+        >
+          <img src={bloomPink} alt="" className="nav-bloom" />
+          <span className="nav-name">Alexa Jacobson</span>
+        </button>
         <div className="nav-right">
           <button
             className="nav-theme-btn"

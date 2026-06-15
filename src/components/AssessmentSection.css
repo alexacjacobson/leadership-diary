@@ -1,0 +1,274 @@
+/* ─── SCARF Cards ──────────────────────────────────────────────── */
+
+.scarf-cards-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.scarf-card {
+  background: var(--color-surface);
+  border-radius: 4px;
+  padding: 18px 16px 14px;
+  flex: 1 1 120px;
+  min-width: 110px;
+  transition: transform 200ms ease-out;
+  transform-origin: center center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scarf-card:hover {
+  transform: rotate(1.5deg);
+}
+
+.scarf-card--active {
+  outline: 1.5px solid #FFB8E7;
+}
+
+.scarf-card__score {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 38px;
+  font-weight: 400;
+  color: #D45FA8;
+  line-height: 1;
+  display: block;
+}
+
+.scarf-card__name {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-ink);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.scarf-card__arrow-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  line-height: 1;
+}
+
+.scarf-desc-panel {
+  margin-top: 14px;
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border-radius: 4px;
+}
+
+.scarf-desc-panel__text {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 15px;
+  color: var(--color-ink);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ─── CliftonStrengths Stack ───────────────────────────────────── */
+
+.clifton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  max-width: 640px;
+}
+
+.clifton-card {
+  background: var(--color-surface);
+  border-radius: 4px;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: transform 200ms ease-out;
+  transform-origin: center center;
+  user-select: none;
+  outline: none;
+}
+
+.clifton-card:hover {
+  transform: rotate(1.5deg);
+}
+
+.clifton-card:focus-visible {
+  outline: 2px solid #FFB8E7;
+  outline-offset: 2px;
+}
+
+.clifton-card__header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.clifton-card__number {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #D45FA8;
+  min-width: 22px;
+  flex-shrink: 0;
+}
+
+.clifton-card__name {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #067A42;
+}
+
+.clifton-card__desc {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--color-ink);
+  line-height: 1.7;
+  margin: 10px 0 0;
+  padding-left: 36px;
+}
+
+/* ─── VIA Cards ────────────────────────────────────────────────── */
+
+.via-header-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  margin-bottom: 2px;
+}
+
+.via-toggle-all-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #D45FA8;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.via-toggle-all-btn:hover {
+  opacity: 0.7;
+}
+
+.via-cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.via-card {
+  background: var(--color-surface);
+  border-radius: 4px;
+  padding: 14px 14px 10px;
+  flex: 1 1 110px;
+  min-width: 100px;
+  transition: transform 200ms ease-out;
+  transform-origin: center center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.via-card:not(.via-card--active):hover {
+  transform: rotate(1.5deg);
+}
+
+.via-card--active {
+  outline: 1.5px solid #FFB8E7;
+}
+
+.via-card__name {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-ink);
+  display: block;
+  line-height: 1.3;
+}
+
+.via-card__arrow-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  line-height: 1;
+}
+
+.via-desc-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.via-desc-panel {
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border-radius: 4px;
+}
+
+.via-desc-panel__name {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #D45FA8;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.via-desc-panel__text {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 15px;
+  color: var(--color-ink);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ─── Combined Reflection ──────────────────────────────────────── */
+
+.assessment-reflection-combined {
+  margin-top: 40px;
+}
+
+.assessment-reflection-combined__label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: #3B5BDB;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.assessment-reflection-combined__textarea {
+  width: 100%;
+  min-height: 120px;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--color-ink);
+  background: transparent;
+  border: 1.5px solid #FFB8E7;
+  border-radius: 6px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.65;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.assessment-reflection-combined__textarea:focus {
+  border-color: #D45FA8;
+}

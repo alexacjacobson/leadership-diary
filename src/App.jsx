@@ -6,8 +6,11 @@ import EntryCard from './components/EntryCard'
 import NewEntryForm from './components/NewEntryForm'
 import Stickers from './components/Stickers'
 import CoverIntro from './components/CoverIntro'
+import AssessmentSection from './components/AssessmentSection'
+import SidebarNav from './components/SidebarNav'
 import lockClosedSrc from '../Assests/Components/lock-closed.svg'
 import lockOpenSrc   from '../Assests/Components/lock-open.svg'
+import heroSrc       from '../Assests/Components/hero.svg'
 
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2)
@@ -137,6 +140,7 @@ export default function App() {
 
   return (
     <>
+      <SidebarNav entries={entries} />
       <NavHeader isUnlocked={isUnlocked} onLockClick={handleLockClick} />
       {isUnlocked && (
         <div style={{ position: 'fixed', top: '70px', right: '24px', zIndex: 100, display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -162,7 +166,7 @@ export default function App() {
 
       <div className={`app${isUnlocked ? ' app--edit-mode' : ''}`}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <h1 className="form-title form-title--page">My Leadership Diar<span style={{ marginLeft: '3px' }}>y</span></h1>
+          <img src={heroSrc} alt="My Leadership Diary" className="hero-image" />
 
           {isUnlocked && showNewEntryForm && (
             <NewEntryForm
@@ -174,18 +178,24 @@ export default function App() {
           )}
         </div>
 
-        <main id="entries" className="entry-feed">
-          {[...entries].reverse().map((entry, i) => (
-            <EntryCard
-              key={entry.id}
-              entry={entry}
-              index={i}
-              isUnlocked={isUnlocked}
-              onDelete={handleDelete}
-              onUpdate={handleUpdate}
-            />
-          ))}
-        </main>
+        <AssessmentSection isUnlocked={isUnlocked} id="assessment" />
+
+        <div className="entries-section">
+          <h2 className="assessment-section__title">Weekly Diary Entries</h2>
+          <main id="entries" className="entry-feed">
+            {[...entries].reverse().map((entry, i) => (
+              <div key={entry.id} id={`entry-${entry.id}`}>
+                <EntryCard
+                  entry={entry}
+                  index={i}
+                  isUnlocked={isUnlocked}
+                  onDelete={handleDelete}
+                  onUpdate={handleUpdate}
+                />
+              </div>
+            ))}
+          </main>
+        </div>
       </div>
 
       {showPinModal && (

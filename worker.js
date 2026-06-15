@@ -47,6 +47,17 @@ export default {
         return new Response(JSON.stringify({ success: true }), { headers });
       }
 
+      if (path === '/api/assessment-reflections' && request.method === 'GET') {
+        const data = await env.DIARY_KV.get('assessment_reflections');
+        return new Response(data || '{}', { headers });
+      }
+
+      if (path === '/api/assessment-reflections' && request.method === 'PUT') {
+        const reflections = await request.json();
+        await env.DIARY_KV.put('assessment_reflections', JSON.stringify(reflections));
+        return new Response(JSON.stringify(reflections), { headers });
+      }
+
       if (path === '/api/stickers' && request.method === 'GET') {
         const data = await env.DIARY_KV.get('stickers');
         return new Response(data || '[]', { headers });
