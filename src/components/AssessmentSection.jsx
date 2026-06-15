@@ -293,8 +293,8 @@ function ViaBlock() {
       {expandedItems.length > 0 && (
         <div className="via-desc-panels">
           {expandedItems.map(s => (
-            <div key={s.name} className="via-desc-panel">
-              {allExpanded && <span className="via-desc-panel__name">{s.name}</span>}
+            <div key={s.name} className="via-desc-panel" style={{ borderLeft: `4px solid ${VIRTUE_COLORS[s.virtue].bg}`, paddingLeft: '16px' }}>
+              {allExpanded && <span className="via-desc-panel__name" style={{ color: VIRTUE_COLORS[s.virtue].bg }}>{s.name}</span>}
               <p className="via-desc-panel__text">{s.desc}</p>
             </div>
           ))}
