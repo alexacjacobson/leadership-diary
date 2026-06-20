@@ -32,8 +32,10 @@ export default {
       if (path.startsWith('/api/entries/') && request.method === 'PUT') {
         const id = path.split('/')[3];
         const updated = await request.json();
+        console.log('[worker PUT] id:', id, 'updated keys:', Object.keys(updated));
         const existing = JSON.parse(await env.DIARY_KV.get('entries') || '[]');
         const index = existing.findIndex(e => e.id === id);
+        console.log('[worker PUT] found at index:', index, 'of', existing.length, 'entries');
         if (index !== -1) existing[index] = updated;
         await env.DIARY_KV.put('entries', JSON.stringify(existing));
         return new Response(JSON.stringify(updated), { headers });

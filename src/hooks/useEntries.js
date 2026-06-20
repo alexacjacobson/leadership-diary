@@ -32,12 +32,15 @@ export async function updateEntry(entry) {
     localStorage.setItem('leadership_diary_entries', JSON.stringify(entries));
     return entry;
   }
+  console.log('[updateEntry] PUT', `${API}/${entry.id}`, entry)
   const res = await fetch(`${API}/${entry.id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(entry)
   });
-  return res.json();
+  const data = await res.json()
+  console.log('[updateEntry] response status:', res.status, data)
+  return data;
 }
 
 export async function deleteEntry(id) {

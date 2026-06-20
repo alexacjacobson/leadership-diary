@@ -56,14 +56,18 @@ export default function App() {
     setShowNewEntryForm(false)
   }
 
-  const handleUpdate = (id, patch) => {
-    setEntries(prev => {
-      const existing = prev.find(e => e.id === id)
-      if (!existing) return prev
-      const merged = { ...existing, ...patch }
-      updateEntry(merged).catch(console.error)
-      return prev.map(e => e.id === id ? merged : e)
-    })
+  const handleUpdate = async (id, patch) => {
+    const existing = entries.find(e => e.id === id)
+    if (!existing) return
+    const merged = { ...existing, ...patch }
+    setEntries(prev => prev.map(e => e.id === id ? merged : e))
+    try {
+      await updateEntry(merged)
+      const fresh = await getEntries()
+      setEntries(fresh)
+    } catch (err) {
+      console.error('[handleUpdate] failed:', err)
+    }
   }
 
   const handleDelete = (id) => {
