@@ -10,14 +10,16 @@ export default function SidebarNav({ entries }) {
   ]
 
   useEffect(() => {
-    const threshold = () => window.innerHeight * 0.35
-
     function getActiveId() {
-      const scrollY = window.scrollY
+      const navEl = document.querySelector('.nav-header')
+      const navHeight = navEl ? navEl.offsetHeight : 56
       let active = items[0]?.id ?? 'assessment'
       for (const item of items) {
         const el = document.getElementById(item.id)
-        if (el && el.offsetTop - threshold() <= scrollY) active = item.id
+        if (el) {
+          const rect = el.getBoundingClientRect()
+          if (rect.top <= navHeight + 20) active = item.id
+        }
       }
       return active
     }
