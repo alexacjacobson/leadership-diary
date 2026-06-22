@@ -41,8 +41,8 @@ export async function saveEntry(entry) {
 
   // Save each photo separately in KV
   await Promise.all((entry.photos || []).filter(p => p.src).map(photo =>
-    fetch(`${PHOTOS_API}/${entry.id}`, {
-      method: 'POST',
+    fetch(`${PHOTOS_API}/${entry.id}/${photo.id}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(photo),
     })
@@ -78,8 +78,8 @@ export async function updateEntry(entry) {
   ));
 
   await Promise.all((entry.photos || []).filter(p => p.src).map(photo =>
-    fetch(`${PHOTOS_API}/${entry.id}`, {
-      method: 'POST',
+    fetch(`${PHOTOS_API}/${entry.id}/${photo.id}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(photo),
     })

@@ -33,12 +33,17 @@ export default {
         const id = path.split('/')[3];
         const updated = await request.json();
         console.log('[worker PUT] id:', id, 'updated keys:', Object.keys(updated));
+        // Strip base64 src from photos before writing to KV to keep entry payload small
+        const toSave = {
+          ...updated,
+          photos: (updated.photos || []).map(({ src, ...meta }) => meta),
+        };
         const existing = JSON.parse(await env.DIARY_KV.get('entries') || '[]');
         const index = existing.findIndex(e => e.id === id);
         console.log('[worker PUT] found at index:', index, 'of', existing.length, 'entries');
-        if (index !== -1) existing[index] = updated;
+        if (index !== -1) existing[index] = toSave;
         await env.DIARY_KV.put('entries', JSON.stringify(existing));
-        return new Response(JSON.stringify(updated), { headers });
+        return new Response(JSON.stringify(toSave), { headers });
       }
 
       if (path.startsWith('/api/entries/') && request.method === 'DELETE') {
@@ -71,11 +76,12 @@ export default {
           return new Response(JSON.stringify(photos.filter(Boolean)), { headers });
         }
 
-        // POST /api/photos/:entryId — saves a single photo by its id
-        if (request.method === 'POST' && parts.length === 3) {
+        // PUT /api/photos/:entryId/:photoId — saves a single photo's full data (including base64 src)
+        if (request.method === 'PUT' && parts.length === 4) {
           const entryId = parts[2];
+          const photoId = parts[3];
           const photo = await request.json();
-          await env.DIARY_KV.put(`photo:${entryId}:${photo.id}`, JSON.stringify(photo));
+          await env.DIARY_KV.put(`photo:${entryId}:${photoId}`, JSON.stringify(photo));
           return new Response(JSON.stringify({ success: true }), { headers });
         }
 
