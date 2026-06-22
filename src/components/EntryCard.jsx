@@ -106,6 +106,7 @@ export default function EntryCard({ entry, index, isUnlocked, onDelete, onUpdate
   }
 
   const handleSave = () => {
+    console.log('[handleSave] photos being saved:', [...editPhotos, ...newEditPhotos])
     onUpdate(entry.id, {
       module: editModule,
       title: editTitle.trim(),

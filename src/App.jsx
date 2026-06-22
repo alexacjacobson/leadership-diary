@@ -59,6 +59,7 @@ export default function App() {
   const handleUpdate = async (id, patch) => {
     const existing = entries.find(e => e.id === id)
     if (!existing) return
+    console.log('[handleUpdate] patch.photos:', patch.photos)
     const merged = { ...existing, ...patch }
     console.log('[handleUpdate] merged:', merged)
     setEntries(prev => prev.map(e => e.id === id ? merged : e))
