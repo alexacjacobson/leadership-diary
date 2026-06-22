@@ -60,13 +60,15 @@ export default function App() {
     const existing = entries.find(e => e.id === id)
     if (!existing) return
     const merged = { ...existing, ...patch }
+    console.log('[handleUpdate] merged:', merged)
     setEntries(prev => prev.map(e => e.id === id ? merged : e))
     try {
       await updateEntry(merged)
-      const fresh = await getEntries()
-      setEntries(fresh)
+      console.log('[handleUpdate] PUT complete')
     } catch (err) {
+      console.log('[handleUpdate] PUT failed:', err)
       console.error('[handleUpdate] failed:', err)
+      setEntries(prev => prev.map(e => e.id === id ? existing : e))
     }
   }
 
