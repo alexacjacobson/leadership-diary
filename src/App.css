@@ -2318,7 +2318,7 @@ textarea, input {
   z-index: 91;
   background: none;
   border: none;
-  color: var(--color-ink);
+  color: var(--color-primary);
   cursor: pointer;
   padding: 4px;
   align-items: center;
